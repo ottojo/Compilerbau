@@ -56,7 +56,8 @@ INSTANTIATE_TEST_SUITE_P(ExponentialTests,
                          testing::Values(
                                  TestCase{.name="multiple_failure", .input="1^2^3^4", .result=std::nullopt},
                                  TestCase{.name="parentheses", .input="2^(1+2)", .result=8},
-                                 TestCase{.name="multiple_parens", .input="2^(2^2)", .result=16}
+                                 TestCase{.name="multiple_parens", .input="2^(2^2)", .result=16},
+                                 TestCase{.name="exp_div", .input="1+2^12/3", .result=2049}
                          ),
                          name);
 
@@ -65,6 +66,18 @@ INSTANTIATE_TEST_SUITE_P(NegativeLiterals,
                          testing::Values(
                                  TestCase{.name="single_literal", .input="-7", .result=-7},
                                  TestCase{.name="add_negative", .input="3+(-2)", .result=1},
-                                 TestCase{.name="negative_exponent", .input="2^-4", .result=0.0625}
+                                 TestCase{.name="negative_exponent", .input="2^-4", .result=0.0625},
+                                 TestCase{.name="long", .input="-1251-3456*-01234", .result=4263453}
+                         ),
+                         name);
+
+INSTANTIATE_TEST_SUITE_P(MissingNUMs,
+                         ParseTest,
+                         testing::Values(
+                                 TestCase{.name="negative", .input="2*5*-*3", .result=std::nullopt},
+                                 TestCase{.name="multiply", .input="3*4**1", .result=std::nullopt},
+                                 TestCase{.name="exponent", .input="2^*33", .result=std::nullopt},
+                                 TestCase{.name="start", .input="/3*4", .result=std::nullopt},
+                                 TestCase{.name="end", .input="12*4-3+", .result=std::nullopt}
                          ),
                          name);
