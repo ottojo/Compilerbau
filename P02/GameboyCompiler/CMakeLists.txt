@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(antlr4-generator REQUIRED)
 find_package(antlr4-runtime REQUIRED)
 
-option(ANTLR4_JAR_LOCATION "ANTLR antlr-4...-complete.jar path" "/usr/local/lib/antlr-4.9.3-complete.jar")
+set(ANTLR4_JAR_LOCATION "/usr/local/lib/antlr-4.9.3-complete.jar" CACHE STRING "ANTLR antlr-4...-complete.jar path")
 
 set(GENERATED_PARSER_NAME generated_gameboy_parser)
 
