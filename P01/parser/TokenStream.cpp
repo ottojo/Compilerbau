@@ -45,7 +45,6 @@ Token TokenStream::getNext() {
         default:
             throw LexingError(0);
     }
-
 }
 
 const char *LexingError::what() const noexcept {

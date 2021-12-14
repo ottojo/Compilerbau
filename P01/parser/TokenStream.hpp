@@ -8,7 +8,7 @@
 class LexingError : public std::exception {
     public:
         explicit LexingError(int pos);
-        [[nodiscard]] const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW override;
+        [[nodiscard]] const char *what() const noexcept override;
 
     private:
         std::string errorMessage;
