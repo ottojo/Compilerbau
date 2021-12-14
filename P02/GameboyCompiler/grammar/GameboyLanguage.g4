@@ -8,7 +8,7 @@ statement: expression | assignment;
 assignment: ID EQ expression;
 
 // Expression: Can be evaluated to a result with type and value (can be empty/void)
-expression: term | term PLUS term | term MINUS term | term DIV term | term TIMES term;
+expression: term | term PLUS term | term MINUS term | term DIV term | term TIMES term | term XOR term;
 term: literal | ID | LPAREN expression RPAREN | call;
 literal: NUMBER+;
 call: ID LPAREN parameterList? RPAREN;
@@ -22,7 +22,7 @@ PLUS: '+';
 MINUS: '-';
 TIMES: '*';
 DIV: '/';
-POW: '^';
+XOR: '^';
 COMMA: ',';
 LPAREN: '(';
 RPAREN: ')';
