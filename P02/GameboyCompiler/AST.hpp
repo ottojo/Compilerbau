@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <vector>
+#include "AssemblyOutput.hpp"
 
 enum ASTNodeType {
     ArithmeticExpression,
@@ -24,12 +25,17 @@ class ASTNode {
     public:
         virtual ASTNodeType getType() = 0;
 
+        virtual void generateCode(AssemblyOutput &out) const;
+
         virtual ~ASTNode() = default;
 };
 
 class AST {
     public:
         using NodePtr = std::shared_ptr<ASTNode>;
+
+        void generateCode(AssemblyOutput &out);
+
         std::vector<NodePtr> nodes;
 };
 
@@ -43,6 +49,8 @@ class ArithmeticExpressionNode : public ASTNode {
 
         ASTNodeType getType() override;
 
+        void generateCode(AssemblyOutput &out) const override;
+
         ~ArithmeticExpressionNode() override = default;
 
         Operation op;
@@ -52,8 +60,11 @@ class ArithmeticExpressionNode : public ASTNode {
 
 class MethodCallNode : public ASTNode {
     public:
-      MethodCallNode(std::string name, std::vector<AST::NodePtr> args);
+        MethodCallNode(std::string name, std::vector<AST::NodePtr> args);
+
         ASTNodeType getType() override;
+
+        void generateCode(AssemblyOutput &out) const override;
 
         ~MethodCallNode() override = default;
 
@@ -91,6 +102,8 @@ class IntegerConstantNode : public ASTNode {
         explicit IntegerConstantNode(int val);
 
         ASTNodeType getType() override;
+
+        void generateCode(AssemblyOutput &out) const override;
 
         ~IntegerConstantNode() override = default;
 

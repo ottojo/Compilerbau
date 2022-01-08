@@ -20,7 +20,29 @@ antlr4_generate(
         "gbparser" # Namespace
 )
 
-add_executable(GameboyCompiler main.cpp ${ANTLR4_SRC_FILES_${GENERATED_PARSER_NAME}} GameboyVisitor.cpp AST.cpp)
+list(APPEND COMMON_FLAGS -Wall -Wextra -Wpedantic -Werror)
+list(APPEND RELEASE_FLAGS ${COMMON_FLAGS} -O3)
+list(APPEND DEBUG_FLAGS ${COMMON_FLAGS} -O0)
+
+add_executable(GameboyCompiler main.cpp ${ANTLR4_SRC_FILES_${GENERATED_PARSER_NAME}} GameboyVisitor.cpp AST.cpp AssemblyOutput.cpp AssemblyOutput.hpp)
 target_link_libraries(GameboyCompiler PRIVATE antlr4_static fmt::fmt)
 target_include_directories(GameboyCompiler PRIVATE ${ANTLR4_INCLUDE_DIR} ${ANTLR4_INCLUDE_DIR_${GENERATED_PARSER_NAME}})
 
+
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif ()
+
+if (CMAKE_BUILD_TYPE MATCHES Release)
+    target_compile_options(GameboyCompiler
+            PRIVATE
+            ${RELEASE_FLAGS}
+            )
+elseif (CMAKE_BUILD_TYPE MATCHES Debug)
+    target_compile_options(GameboyCompiler
+            PRIVATE
+            ${DEBUG_FLAGS}
+            )
+endif ()
+
+#add_subdirectory(tests)

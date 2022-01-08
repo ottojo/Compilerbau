@@ -7,7 +7,6 @@
 
 #include "GameboyLanguageBaseVisitor.h"
 
-
 #include "AST.hpp"
 
 class GameboyVisitor : public gbparser::GameboyLanguageBaseVisitor {
