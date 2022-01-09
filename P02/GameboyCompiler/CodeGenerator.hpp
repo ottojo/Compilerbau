@@ -14,32 +14,41 @@
 
 class CodeGenerator {
     public:
-        static void generateAssembly(AssemblyOutput &out, const AST &ast, SymbolTable &symbolTable);
+
+    public:
+        CodeGenerator(AssemblyOutput &out, const AST &ast, SymbolTable &symbolTable);
+
+        void generateAssembly();
 
     private:
+
+        AssemblyOutput &out;
+        const AST &ast;
+        SymbolTable &symbolTable;
+
+        int ind = 0;
+
         /**
          * Generic method that calls the generation method for the specific type of node
-         * @param out Assembly output
          * @param node Generic pointer to a node
          */
-        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const AST::MutNodePtr &node);
+        void generateAssembly(const AST::MutNodePtr &node);
 
-        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const ArithmeticExpressionNode &node);
+        void generateAssembly(const ArithmeticExpressionNode &node);
 
-        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const MethodCallNode &node);
+        void generateAssembly(const MethodCallNode &node);
 
-        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const VariableDeclarationNode &node);
+        void generateAssembly(const VariableDeclarationNode &node);
 
-        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const VariableAssignmentNode &node);
+        void generateAssembly(const VariableAssignmentNode &node);
 
-        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const IntegerConstantNode &node);
+        void generateAssembly(const IntegerConstantNode &node);
 
-        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const VariableAccessNode &node);
+        void generateAssembly(const VariableAccessNode &node);
 
-        static void assignGlobals(AssemblyOutput &out, SymbolTable &symbolTable);
+        void assignGlobals();
 
-        static uint16_t addressOfGlobal(const std::string& id, const SymbolTable &symbolTable);
-
+        static uint16_t addressOfGlobal(const std::string &id, const SymbolTable &symbolTable);
 };
 
 
