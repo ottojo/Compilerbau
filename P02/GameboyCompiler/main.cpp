@@ -9,11 +9,8 @@
 
 int main() {
     std::string filename = "tests/inputs/assignments.gb";
-    std::ifstream ifstream(filename);
-    if (not ifstream.is_open()) {
-        throw fmt::system_error(errno, "cannot open file '{}'", filename);
-    }
-    antlr4::ANTLRInputStream input(ifstream);
+    antlr4::ANTLRFileStream input;
+    input.loadFromFile(filename);
     gbparser::GameboyLanguageLexer lexer(&input);
     antlr4::CommonTokenStream tokenStream(&lexer);
     gbparser::GameboyLanguageParser parser(&tokenStream);

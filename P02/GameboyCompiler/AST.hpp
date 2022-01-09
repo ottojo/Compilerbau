@@ -13,7 +13,7 @@
 #include "AssemblyOutput.hpp"
 #include "SymbolTable.hpp"
 
-enum ASTNodeType {
+enum class ASTNodeType {
     ArithmeticExpression,
     MethodCall,
     VariableDeclaration,

@@ -10,7 +10,7 @@
 #include <utility>
 
 ASTNodeType ArithmeticExpressionNode::getType() {
-    return ArithmeticExpression;
+    return ASTNodeType::ArithmeticExpression;
 }
 
 ArithmeticExpressionNode::ArithmeticExpressionNode(const SourceLocation &loc, ArithmeticExpressionNode::Operation op,
@@ -23,7 +23,7 @@ ArithmeticExpressionNode::ArithmeticExpressionNode(const SourceLocation &loc, Ar
 
 
 ASTNodeType MethodCallNode::getType() {
-    return MethodCall;
+    return ASTNodeType::MethodCall;
 }
 
 MethodCallNode::MethodCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args) :
@@ -32,7 +32,7 @@ MethodCallNode::MethodCallNode(const SourceLocation &loc, std::string name, std:
         argumentList(std::move(args)) {}
 
 ASTNodeType VariableDeclarationNode::getType() {
-    return VariableDeclaration;
+    return ASTNodeType::VariableDeclaration;
 }
 
 VariableDeclarationNode::VariableDeclarationNode(const SourceLocation &loc, std::string type, std::string name,
@@ -43,7 +43,7 @@ VariableDeclarationNode::VariableDeclarationNode(const SourceLocation &loc, std:
         rhs(std::move(rhs)) {}
 
 ASTNodeType VariableAssignmentNode::getType() {
-    return VariableAssignment;
+    return ASTNodeType::VariableAssignment;
 }
 
 VariableAssignmentNode::VariableAssignmentNode(const SourceLocation &loc, std::string name, AST::MutNodePtr rhs) :
@@ -52,14 +52,14 @@ VariableAssignmentNode::VariableAssignmentNode(const SourceLocation &loc, std::s
         rhs(std::move(rhs)) {}
 
 ASTNodeType IntegerConstantNode::getType() {
-    return Constant;
+    return ASTNodeType::Constant;
 }
 
 IntegerConstantNode::IntegerConstantNode(const SourceLocation &loc, int val) :
         ASTNode(loc), value(val) {}
 
 ASTNodeType VariableAccessNode::getType() {
-    return VariableAccess;
+    return ASTNodeType::VariableAccess;
 }
 
 VariableAccessNode::VariableAccessNode(const SourceLocation &loc, std::string name) :

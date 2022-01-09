@@ -18,9 +18,34 @@ enum DeclType {
     Variable
 };
 
-struct Declaration {
-    DeclType type;
-    std::optional<SourceLocation> loc = std::nullopt;
+class Declaration {
+    public:
+        virtual DeclType getType() = 0;
+
+        Declaration() = default;
+
+        explicit Declaration(const SourceLocation &loc);
+
+        virtual ~Declaration() = default;
+
+        std::optional<SourceLocation> loc = std::nullopt;
+};
+
+class VariableDeclaration : public Declaration {
+    public:
+
+        explicit VariableDeclaration(const SourceLocation &loc);
+
+        DeclType getType() override;
+
+        ~VariableDeclaration() override = default;
+};
+
+class FunctionDeclaration : public Declaration {
+    public:
+        DeclType getType() override;
+
+        ~FunctionDeclaration() override = default;
 };
 
 /*
@@ -33,7 +58,7 @@ struct DE {
 
 class SymbolTable {
     private:
-        using MapType = std::map<std::string, Declaration>;
+        using MapType = std::map<std::string, std::unique_ptr<Declaration>>;
     public:
         using ConstIterator = MapType::const_iterator;
 
@@ -51,7 +76,7 @@ class SymbolTable {
          * @param decl Declaration information
          * @return True if ID was not already present in table
          */
-        bool enter(const std::string &id, const Declaration &decl);
+        bool enter(const std::string &id, const VariableDeclaration &decl);
 
         /**
          * Look up a name and find its declaration
@@ -60,9 +85,12 @@ class SymbolTable {
          */
         [[nodiscard]] std::optional<ConstIterator> lookup(const std::string &id) const;
 
+        // TODO: Function declarations
+        bool enter(const std::string &id, const FunctionDeclaration &decl);
+
     private:
         // int currNl = 0; ///< Current nesting level
-        std::map<std::string, Declaration> table;
+        MapType table;
 };
 
 

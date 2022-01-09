@@ -36,6 +36,9 @@ class NameAnalysis {
 
         static void annotateNode(SymbolTable &st, MethodCallNode &node);
 
+        static void annotateNode(SymbolTable &st, ArithmeticExpressionNode &node);
+
+
         static void prefillSymbolTable(SymbolTable &table);
 };
 

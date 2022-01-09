@@ -17,6 +17,7 @@ void NameAnalysis::annotateAST(AST &ast) {
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, const AST::MutNodePtr &node) {
+    using enum ASTNodeType;
     switch (node->getType()) {
         case MethodCall:
             annotateNode(st, *std::dynamic_pointer_cast<MethodCallNode>(node));
@@ -30,27 +31,32 @@ void NameAnalysis::annotateNode(SymbolTable &st, const AST::MutNodePtr &node) {
         case VariableAccess:
             annotateNode(st, *std::dynamic_pointer_cast<VariableAccessNode>(node));
             break;
-        case Constant:
-            [[fallthrough]];
         case ArithmeticExpression:
+            annotateNode(st, *std::dynamic_pointer_cast<ArithmeticExpressionNode>(node));
+            break;
+        case Constant:
             break;
     }
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, VariableDeclarationNode &node) {
     annotateNode(st, node.rhs);
-    if (not st.enter(node.name, Declaration{.type=Variable, .loc=node.loc})) {
+    if (not st.enter(node.name, VariableDeclaration(node.loc))) {
         // Entry failed, name already used
         auto prev = st.lookup(node.name);
         throw NameError(fmt::format("Tried to declare previously declared variable \"{}\"! Previous declaration at {}",
-                                    node.name, prev.value()->second.loc.value_or(SourceLocation())), node.loc);
+                                    node.name, prev.value()->second->loc.value_or(SourceLocation())), node.loc);
     }
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, VariableAccessNode &node) {
     auto res = st.lookup(node.name);
     if (not res.has_value()) {
-        throw NameError(fmt::format("Tried to access to undeclared variable \"{}\"!", node.name), node.loc);
+        throw NameError(fmt::format("Tried to access undeclared variable \"{}\"!", node.name), node.loc);
+    }
+    if ((*res)->second->getType() != Variable) {
+        throw NameError(fmt::format("\"{}\" (declared at {}) is not a variable!", node.name,
+                                    (*res)->second->loc.value_or(SourceLocation())), node.loc);
     }
     node.varDecl = *res;
 }
@@ -60,6 +66,10 @@ void NameAnalysis::annotateNode(SymbolTable &st, VariableAssignmentNode &node) {
     auto res = st.lookup(node.name);
     if (not res.has_value()) {
         throw NameError(fmt::format("Tried to assign to undeclared variable \"{}\"!", node.name), node.loc);
+    }
+    if ((*res)->second->getType() != Variable) {
+        throw NameError(fmt::format("\"{}\" (declared at {}) is not a variable!", node.name,
+                                    (*res)->second->loc.value_or(SourceLocation())), node.loc);
     }
     node.varDecl = *res;
 }
@@ -72,11 +82,20 @@ void NameAnalysis::annotateNode(SymbolTable &st, MethodCallNode &node) {
     if (not res.has_value()) {
         throw NameError(fmt::format("Tried to call undeclared function \"{}\"!", node.name), node.loc);
     }
+    if ((*res)->second->getType() != Function) {
+        throw NameError(fmt::format("\"{}\" (declared at {}) is not a function!", node.name,
+                                    (*res)->second->loc.value_or(SourceLocation())), node.loc);
+    }
     node.methodDecl = *res;
 }
 
 void NameAnalysis::prefillSymbolTable(SymbolTable &table) {
-    table.enter("printWord", Declaration{.type=Function});
+    table.enter("printWord", FunctionDeclaration());
+}
+
+void NameAnalysis::annotateNode(SymbolTable &st, ArithmeticExpressionNode &node) {
+    annotateNode(st, node.lhs);
+    annotateNode(st, node.rhs);
 }
 
 const char *NameError::what() const noexcept {

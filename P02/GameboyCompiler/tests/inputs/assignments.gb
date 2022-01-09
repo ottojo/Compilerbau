@@ -11,4 +11,5 @@ int16 f = c;
 
 f = 5;
 
+int result = a + (b + (nonexistent + c))
 

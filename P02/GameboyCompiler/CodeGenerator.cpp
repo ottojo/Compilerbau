@@ -16,6 +16,7 @@ void CodeGenerator::generateAssembly(AssemblyOutput &out, const AST &ast) {
 }
 
 void CodeGenerator::generateAssembly(AssemblyOutput &out, const AST::MutNodePtr &node) {
+    using enum ASTNodeType;
     switch (node->getType()) {
         case ArithmeticExpression:
             generateAssembly(out, *std::dynamic_pointer_cast<ArithmeticExpressionNode>(node));

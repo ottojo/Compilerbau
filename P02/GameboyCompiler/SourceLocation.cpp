@@ -7,7 +7,9 @@
 
 #include "SourceLocation.hpp"
 
-SourceLocation::SourceLocation(antlr4::TokenSource *source) :
-        file(source->getSourceName()),
-        line(source->getLine()),
-        column(source->getCharPositionInLine()) {}
+#include <TokenSource.h>
+
+SourceLocation::SourceLocation(antlr4::Token *token) :
+        file(token->getTokenSource()->getSourceName()),
+        line(token->getLine()),
+        column(token->getCharPositionInLine()) {}

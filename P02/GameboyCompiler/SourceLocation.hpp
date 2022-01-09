@@ -9,14 +9,14 @@
 #define GAMEBOYCOMPILER_SOURCELOCATION_HPP
 
 #include <string>
-#include <TokenSource.h>
+#include <Token.h>
 #include <fmt/format.h>
 
 class SourceLocation {
     public:
         SourceLocation() = default;
 
-        SourceLocation(antlr4::TokenSource *source); // NOLINT(google-explicit-constructor)
+        explicit SourceLocation(antlr4::Token *token);
 
         std::string file;
         std::size_t line = 0;
