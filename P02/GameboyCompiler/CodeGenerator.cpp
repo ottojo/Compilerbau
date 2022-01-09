@@ -15,7 +15,7 @@ void CodeGenerator::generateAssembly(AssemblyOutput &out, const AST &ast) {
     out.finalize();
 }
 
-void CodeGenerator::generateAssembly(AssemblyOutput &out, const AST::NodePtr &node) {
+void CodeGenerator::generateAssembly(AssemblyOutput &out, const AST::MutNodePtr &node) {
     switch (node->getType()) {
         case ArithmeticExpression:
             generateAssembly(out, *std::dynamic_pointer_cast<ArithmeticExpressionNode>(node));
@@ -75,12 +75,11 @@ void CodeGenerator::generateAssembly(AssemblyOutput &out, const MethodCallNode &
 }
 
 void CodeGenerator::generateAssembly(AssemblyOutput &/*out*/, const VariableDeclarationNode &/*node*/) {
-    throw std::runtime_error{"Code generation for variable decl not implemented"};
-
+    //throw std::runtime_error{"Code generation for variable decl not implemented"};
 }
 
 void CodeGenerator::generateAssembly(AssemblyOutput &/*out*/, const VariableAssignmentNode &/*node*/) {
-    throw std::runtime_error{"Code generation for variable assignment not implemented"};
+    //throw std::runtime_error{"Code generation for variable assignment not implemented"};
 
 }
 
@@ -91,5 +90,5 @@ void CodeGenerator::generateAssembly(AssemblyOutput &out, const IntegerConstantN
 }
 
 void CodeGenerator::generateAssembly(AssemblyOutput &/*out*/, const VariableAccessNode &/*node*/) {
-    throw std::runtime_error{"Code generation for variable access not implemented"};
+    //throw std::runtime_error{"Code generation for variable access not implemented"};
 }

@@ -13,8 +13,10 @@ ASTNodeType ArithmeticExpressionNode::getType() {
     return ArithmeticExpression;
 }
 
-ArithmeticExpressionNode::ArithmeticExpressionNode(ArithmeticExpressionNode::Operation op, AST::NodePtr lhs,
-                                                   AST::NodePtr rhs) :
+ArithmeticExpressionNode::ArithmeticExpressionNode(const SourceLocation &loc, ArithmeticExpressionNode::Operation op,
+                                                   AST::MutNodePtr lhs,
+                                                   AST::MutNodePtr rhs) :
+        ASTNode(loc),
         op(op),
         lhs(std::move(lhs)),
         rhs(std::move(rhs)) {}
@@ -24,7 +26,8 @@ ASTNodeType MethodCallNode::getType() {
     return MethodCall;
 }
 
-MethodCallNode::MethodCallNode(std::string name, std::vector<AST::NodePtr> args) :
+MethodCallNode::MethodCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args) :
+        ASTNode(loc),
         name(std::move(name)),
         argumentList(std::move(args)) {}
 
@@ -32,7 +35,9 @@ ASTNodeType VariableDeclarationNode::getType() {
     return VariableDeclaration;
 }
 
-VariableDeclarationNode::VariableDeclarationNode(std::string type, std::string name, AST::NodePtr rhs) :
+VariableDeclarationNode::VariableDeclarationNode(const SourceLocation &loc, std::string type, std::string name,
+                                                 AST::MutNodePtr rhs) :
+        ASTNode(loc),
         type(std::move(type)),
         name(std::move(name)),
         rhs(std::move(rhs)) {}
@@ -41,7 +46,8 @@ ASTNodeType VariableAssignmentNode::getType() {
     return VariableAssignment;
 }
 
-VariableAssignmentNode::VariableAssignmentNode(std::string name, AST::NodePtr rhs) :
+VariableAssignmentNode::VariableAssignmentNode(const SourceLocation &loc, std::string name, AST::MutNodePtr rhs) :
+        ASTNode(loc),
         name(std::move(name)),
         rhs(std::move(rhs)) {}
 
@@ -49,11 +55,15 @@ ASTNodeType IntegerConstantNode::getType() {
     return Constant;
 }
 
-IntegerConstantNode::IntegerConstantNode(int val) : value(val) {}
+IntegerConstantNode::IntegerConstantNode(const SourceLocation &loc, int val) :
+        ASTNode(loc), value(val) {}
 
 ASTNodeType VariableAccessNode::getType() {
     return VariableAccess;
 }
 
-VariableAccessNode::VariableAccessNode(std::string n) : name(std::move(n)) {}
+VariableAccessNode::VariableAccessNode(const SourceLocation &loc, std::string name) :
+        ASTNode(loc),
+        name(std::move(name)) {}
 
+ASTNode::ASTNode(SourceLocation loc) : loc(std::move(loc)) {}

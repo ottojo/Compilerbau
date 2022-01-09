@@ -1,1 +1,14 @@
-printWord(300+15)
+printWord(300+(15+(1+(4+(45+(2+(1+56)))))))
+int16 a = 7
+int16 b = 1
+int16 c = a + b
+printWord(a+b)
+
+int16 asdf = 3;
+c = asdf
+
+int16 f = c;
+
+f = 5;
+
+

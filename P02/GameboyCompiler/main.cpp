@@ -3,8 +3,9 @@
 #include <fmt/format.h>
 #include "GameboyLanguageLexer.h"
 #include "GameboyLanguageParser.h"
-#include "GameboyVisitor.hpp"
+#include "ASTGenerationVisitor.hpp"
 #include "CodeGenerator.hpp"
+#include "NameAnalysis.hpp"
 
 int main() {
     std::string filename = "tests/inputs/assignments.gb";
@@ -22,9 +23,10 @@ int main() {
 
     parser.reset();
 
-    GameboyVisitor visitor;
-    AST ast = visitor.visitProgram(parser.program()).as<AST>();
-    //fmt::print("{}\n", ast.nodes.size());
+    ASTGenerationVisitor visitor;
+    AST ast = visitor.generateAST(parser.program());
+
+    NameAnalysis::annotateAST(ast);
 
     AssemblyOutput output("out.asm");
     CodeGenerator::generateAssembly(output, ast);

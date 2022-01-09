@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 #include "AssemblyOutput.hpp"
+#include "SymbolTable.hpp"
 
 enum ASTNodeType {
     ArithmeticExpression,
@@ -23,16 +24,20 @@ enum ASTNodeType {
 
 class ASTNode {
     public:
+        ASTNode(SourceLocation loc);
+
         virtual ASTNodeType getType() = 0;
 
         virtual ~ASTNode() = default;
+
+        const SourceLocation loc;
 };
 
 class AST {
     public:
-        using NodePtr = std::shared_ptr<ASTNode>;
+        using MutNodePtr = std::shared_ptr<ASTNode>;
 
-        std::vector<NodePtr> nodes;
+        std::vector<MutNodePtr> nodes;
 };
 
 class ArithmeticExpressionNode : public ASTNode {
@@ -41,32 +46,33 @@ class ArithmeticExpressionNode : public ASTNode {
             PLUS, MINUS, DIV, MULT, XOR
         };
 
-        ArithmeticExpressionNode(Operation op, AST::NodePtr lhs, AST::NodePtr rhs);
+        ArithmeticExpressionNode(const SourceLocation &loc, Operation op, AST::MutNodePtr lhs, AST::MutNodePtr rhs);
 
         ASTNodeType getType() override;
 
         ~ArithmeticExpressionNode() override = default;
 
         Operation op;
-        AST::NodePtr lhs;
-        AST::NodePtr rhs;
+        AST::MutNodePtr lhs;
+        AST::MutNodePtr rhs;
 };
 
 class MethodCallNode : public ASTNode {
     public:
-        MethodCallNode(std::string name, std::vector<AST::NodePtr> args);
+        MethodCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args);
 
         ASTNodeType getType() override;
 
         ~MethodCallNode() override = default;
 
         std::string name;
-        std::vector<AST::NodePtr> argumentList;
+        SymbolTable::ConstIterator methodDecl;
+        std::vector<AST::MutNodePtr> argumentList;
 };
 
 class VariableDeclarationNode : public ASTNode {
     public:
-        VariableDeclarationNode(std::string type, std::string name, AST::NodePtr rhs);
+        VariableDeclarationNode(const SourceLocation &loc, std::string type, std::string name, AST::MutNodePtr rhs);
 
         ASTNodeType getType() override;
 
@@ -74,24 +80,26 @@ class VariableDeclarationNode : public ASTNode {
 
         std::string type;
         std::string name;
-        AST::NodePtr rhs;
+        SymbolTable::ConstIterator declEntry;
+        AST::MutNodePtr rhs;
 };
 
 class VariableAssignmentNode : public ASTNode {
     public:
-        VariableAssignmentNode(std::string name, AST::NodePtr rhs);
+        VariableAssignmentNode(const SourceLocation &loc, std::string name, AST::MutNodePtr rhs);
 
         ASTNodeType getType() override;
 
         ~VariableAssignmentNode() override = default;
 
         std::string name;
-        AST::NodePtr rhs;
+        SymbolTable::ConstIterator varDecl;
+        AST::MutNodePtr rhs;
 };
 
 class IntegerConstantNode : public ASTNode {
     public:
-        explicit IntegerConstantNode(int val);
+        explicit IntegerConstantNode(const SourceLocation &loc, int val);
 
         ASTNodeType getType() override;
 
@@ -102,12 +110,13 @@ class IntegerConstantNode : public ASTNode {
 
 class VariableAccessNode : public ASTNode {
     public:
-        explicit VariableAccessNode(std::string name);
+        explicit VariableAccessNode(const SourceLocation &loc, std::string name);
 
         ASTNodeType getType() override;
 
         ~VariableAccessNode() override = default;
 
+        SymbolTable::ConstIterator varDecl;
         std::string name;
 };
 

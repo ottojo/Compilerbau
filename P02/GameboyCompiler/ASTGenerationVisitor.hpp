@@ -2,18 +2,20 @@
 // Created by jonas on 14.12.21.
 //
 
-#ifndef GAMEBOYCOMPILER_GAMEBOYVISITOR_HPP
-#define GAMEBOYCOMPILER_GAMEBOYVISITOR_HPP
+#ifndef GAMEBOYCOMPILER_ASTGENERATIONVISITOR_HPP
+#define GAMEBOYCOMPILER_ASTGENERATIONVISITOR_HPP
 
 #include "GameboyLanguageBaseVisitor.h"
 
 #include "AST.hpp"
 
-class GameboyVisitor : public gbparser::GameboyLanguageBaseVisitor {
+class ASTGenerationVisitor : public gbparser::GameboyLanguageBaseVisitor {
     public:
-        antlrcpp::Any visitDeclaration(gbparser::GameboyLanguageParser::DeclarationContext *ctx) override;
+        AST generateAST(gbparser::GameboyLanguageParser::ProgramContext *ctx);
 
         antlrcpp::Any visitProgram(gbparser::GameboyLanguageParser::ProgramContext *ctx) override;
+
+        antlrcpp::Any visitDeclaration(gbparser::GameboyLanguageParser::DeclarationContext *ctx) override;
 
         antlrcpp::Any visitStatementList(gbparser::GameboyLanguageParser::StatementListContext *ctx) override;
 
@@ -33,4 +35,4 @@ class GameboyVisitor : public gbparser::GameboyLanguageBaseVisitor {
 };
 
 
-#endif //GAMEBOYCOMPILER_GAMEBOYVISITOR_HPP
+#endif //GAMEBOYCOMPILER_ASTGENERATIONVISITOR_HPP

@@ -22,7 +22,7 @@ class CodeGenerator {
          * @param out Assembly output
          * @param node Generic pointer to a node
          */
-        static void generateAssembly(AssemblyOutput &out, const AST::NodePtr &node);
+        static void generateAssembly(AssemblyOutput &out, const AST::MutNodePtr &node);
 
         static void generateAssembly(AssemblyOutput &out, const ArithmeticExpressionNode &node);
 
