@@ -13,7 +13,7 @@
 #include <map>
 #include "SourceLocation.hpp"
 
-enum DeclType {
+enum class DeclType {
     Function,
     Variable
 };
@@ -39,6 +39,8 @@ class VariableDeclaration : public Declaration {
         DeclType getType() override;
 
         ~VariableDeclaration() override = default;
+
+        int address;
 };
 
 class FunctionDeclaration : public Declaration {
@@ -88,7 +90,6 @@ class SymbolTable {
         // TODO: Function declarations
         bool enter(const std::string &id, const FunctionDeclaration &decl);
 
-    private:
         // int currNl = 0; ///< Current nesting level
         MapType table;
 };

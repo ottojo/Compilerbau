@@ -23,10 +23,10 @@ int main() {
     ASTGenerationVisitor visitor;
     AST ast = visitor.generateAST(parser.program());
 
-    NameAnalysis::annotateAST(ast);
+    auto symbolTable = NameAnalysis::annotateAST(ast);
 
     AssemblyOutput output("out.asm");
-    CodeGenerator::generateAssembly(output, ast);
+    CodeGenerator::generateAssembly(output, ast, *symbolTable);
 
     return 0;
 }

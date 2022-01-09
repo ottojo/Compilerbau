@@ -26,13 +26,13 @@ std::optional<SymbolTable::ConstIterator> SymbolTable::lookup(const std::string 
 }
 
 DeclType VariableDeclaration::getType() {
-    return Variable;
+    return DeclType::Variable;
 }
 
 VariableDeclaration::VariableDeclaration(const SourceLocation &loc) : Declaration(loc) {}
 
 DeclType FunctionDeclaration::getType() {
-    return Function;
+    return DeclType::Function;
 }
 
 Declaration::Declaration(const SourceLocation &loc) : loc(loc) {}

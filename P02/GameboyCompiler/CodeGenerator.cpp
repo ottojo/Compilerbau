@@ -7,45 +7,47 @@
 
 #include "CodeGenerator.hpp"
 
-void CodeGenerator::generateAssembly(AssemblyOutput &out, const AST &ast) {
+void CodeGenerator::generateAssembly(AssemblyOutput &out, const AST &ast, SymbolTable &symbolTable) {
     out.preamble();
+    assignGlobals(out, symbolTable);
     for (const auto &node: ast.nodes) {
-        generateAssembly(out, node);
+        generateAssembly(out, symbolTable, node);
     }
     out.finalize();
 }
 
-void CodeGenerator::generateAssembly(AssemblyOutput &out, const AST::MutNodePtr &node) {
+void CodeGenerator::generateAssembly(AssemblyOutput &out, const SymbolTable &symbolTable, const AST::MutNodePtr &node) {
     using enum ASTNodeType;
     switch (node->getType()) {
         case ArithmeticExpression:
-            generateAssembly(out, *std::dynamic_pointer_cast<ArithmeticExpressionNode>(node));
+            generateAssembly(out, symbolTable, *std::dynamic_pointer_cast<ArithmeticExpressionNode>(node));
             return;
         case MethodCall:
-            generateAssembly(out, *std::dynamic_pointer_cast<MethodCallNode>(node));
+            generateAssembly(out, symbolTable, *std::dynamic_pointer_cast<MethodCallNode>(node));
             return;
         case VariableDeclaration:
-            generateAssembly(out, *std::dynamic_pointer_cast<VariableDeclarationNode>(node));
+            generateAssembly(out, symbolTable, *std::dynamic_pointer_cast<VariableDeclarationNode>(node));
             return;
         case VariableAssignment:
-            generateAssembly(out, *std::dynamic_pointer_cast<VariableAssignmentNode>(node));
+            generateAssembly(out, symbolTable, *std::dynamic_pointer_cast<VariableAssignmentNode>(node));
             return;
         case Constant:
-            generateAssembly(out, *std::dynamic_pointer_cast<IntegerConstantNode>(node));
+            generateAssembly(out, symbolTable, *std::dynamic_pointer_cast<IntegerConstantNode>(node));
             return;
         case VariableAccess:
-            generateAssembly(out, *std::dynamic_pointer_cast<VariableAccessNode>(node));
+            generateAssembly(out, symbolTable, *std::dynamic_pointer_cast<VariableAccessNode>(node));
             return;
     }
 
     throw std::runtime_error("Unknown node type");
 }
 
-void CodeGenerator::generateAssembly(AssemblyOutput &out, const ArithmeticExpressionNode &node) {
+void CodeGenerator::generateAssembly(AssemblyOutput &out, const SymbolTable &symbolTable,
+                                     const ArithmeticExpressionNode &node) {
     out.comment("LHS:");
-    generateAssembly(out, node.lhs);
+    generateAssembly(out, symbolTable, node.lhs);
     out.comment("RHS:");
-    generateAssembly(out, node.rhs);
+    generateAssembly(out, symbolTable, node.rhs);
     out.comment("OP:");
     using Operation = ArithmeticExpressionNode::Operation;
     switch (node.op) {
@@ -60,10 +62,10 @@ void CodeGenerator::generateAssembly(AssemblyOutput &out, const ArithmeticExpres
     }
 }
 
-void CodeGenerator::generateAssembly(AssemblyOutput &out, const MethodCallNode &node) {
+void CodeGenerator::generateAssembly(AssemblyOutput &out, const SymbolTable &symbolTable, const MethodCallNode &node) {
     out.comment("Evaluate arguments:");
     for (const auto &arg: node.argumentList) {
-        generateAssembly(out, arg);
+        generateAssembly(out, symbolTable, arg);
     }
 
     out.comment("Call func:");
@@ -75,21 +77,56 @@ void CodeGenerator::generateAssembly(AssemblyOutput &out, const MethodCallNode &
     }
 }
 
-void CodeGenerator::generateAssembly(AssemblyOutput &/*out*/, const VariableDeclarationNode &/*node*/) {
-    //throw std::runtime_error{"Code generation for variable decl not implemented"};
+void CodeGenerator::generateAssembly(AssemblyOutput &out, const SymbolTable &symbolTable,
+                                     const VariableDeclarationNode &node) {
+
+    // Evaluate RHS for initialization
+    out.comment(fmt::format("Evaluate RHS for initialization of {}", node.name));
+    generateAssembly(out, symbolTable, node.rhs);
+    auto addr = addressOfGlobal(node.name, symbolTable);
+    out.comment(fmt::format("Initializing {} at address {:#x}", node.name, addr));
+    out.pop16ToAddr(Address{.a=addr});
 }
 
-void CodeGenerator::generateAssembly(AssemblyOutput &/*out*/, const VariableAssignmentNode &/*node*/) {
-    //throw std::runtime_error{"Code generation for variable assignment not implemented"};
+void CodeGenerator::generateAssembly(AssemblyOutput &/*out*/, const SymbolTable &/*symbolTable*/,
+                                     const VariableAssignmentNode &/*node*/) {
+    throw std::runtime_error{"Code generation for variable assignment not implemented"};
 
 }
 
-void CodeGenerator::generateAssembly(AssemblyOutput &out, const IntegerConstantNode &node) {
+void
+CodeGenerator::generateAssembly(AssemblyOutput &out, const SymbolTable &/*symbolTable*/, const IntegerConstantNode &node) {
     // TODO: Range
     out.push16BitConst(node.value);
 
 }
 
-void CodeGenerator::generateAssembly(AssemblyOutput &/*out*/, const VariableAccessNode &/*node*/) {
-    //throw std::runtime_error{"Code generation for variable access not implemented"};
+void CodeGenerator::generateAssembly(AssemblyOutput &out, const SymbolTable &symbolTable,
+                                     const VariableAccessNode &node) {
+
+    auto addr = addressOfGlobal(node.name, symbolTable);
+    out.comment(fmt::format("Reading {} from address {:#x}", node.name, addr));
+    out.push16FromAddr(Address{.a=addr});
+}
+
+void CodeGenerator::assignGlobals(AssemblyOutput &/*out*/, SymbolTable &symbolTable) {
+    int nextFree = 0xC000;
+    constexpr int lastAddress = 0xDFFF;
+    for (auto &[id, s]: symbolTable.table) {
+        if (s->getType() == DeclType::Variable) {
+            auto addr = nextFree;
+            nextFree += 2;
+            if (nextFree > lastAddress + 1) {
+                throw std::runtime_error{"Too many globals!"};
+            }
+            fmt::print("Global \"{}\" at {:#x}\n", id, addr);
+            auto decl = dynamic_cast<VariableDeclaration *>(s.get());
+            decl->address = addr;
+        }
+    }
+}
+
+uint16_t CodeGenerator::addressOfGlobal(const std::string &id, const SymbolTable &symbolTable) {
+    auto varDecl = dynamic_cast<const VariableDeclaration *>(symbolTable.lookup(id).value()->second.get());
+    return varDecl->address;
 }

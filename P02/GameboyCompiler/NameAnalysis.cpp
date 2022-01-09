@@ -8,12 +8,13 @@
 #include "NameAnalysis.hpp"
 #include "SymbolTable.hpp"
 
-void NameAnalysis::annotateAST(AST &ast) {
-    SymbolTable st;
-    prefillSymbolTable(st);
+std::shared_ptr<SymbolTable> NameAnalysis::annotateAST(AST &ast) {
+    auto st = std::make_shared<SymbolTable>();
+    prefillSymbolTable(*st);
     for (auto &node: ast.nodes) {
-        annotateNode(st, node);
+        annotateNode(*st, node);
     }
+    return st;
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, const AST::MutNodePtr &node) {
@@ -54,7 +55,7 @@ void NameAnalysis::annotateNode(SymbolTable &st, VariableAccessNode &node) {
     if (not res.has_value()) {
         throw NameError(fmt::format("Tried to access undeclared variable \"{}\"!", node.name), node.loc);
     }
-    if ((*res)->second->getType() != Variable) {
+    if ((*res)->second->getType() != DeclType::Variable) {
         throw NameError(fmt::format("\"{}\" (declared at {}) is not a variable!", node.name,
                                     (*res)->second->loc.value_or(SourceLocation())), node.loc);
     }
@@ -67,7 +68,7 @@ void NameAnalysis::annotateNode(SymbolTable &st, VariableAssignmentNode &node) {
     if (not res.has_value()) {
         throw NameError(fmt::format("Tried to assign to undeclared variable \"{}\"!", node.name), node.loc);
     }
-    if ((*res)->second->getType() != Variable) {
+    if ((*res)->second->getType() != DeclType::Variable) {
         throw NameError(fmt::format("\"{}\" (declared at {}) is not a variable!", node.name,
                                     (*res)->second->loc.value_or(SourceLocation())), node.loc);
     }
@@ -82,7 +83,7 @@ void NameAnalysis::annotateNode(SymbolTable &st, MethodCallNode &node) {
     if (not res.has_value()) {
         throw NameError(fmt::format("Tried to call undeclared function \"{}\"!", node.name), node.loc);
     }
-    if ((*res)->second->getType() != Function) {
+    if ((*res)->second->getType() != DeclType::Function) {
         throw NameError(fmt::format("\"{}\" (declared at {}) is not a function!", node.name,
                                     (*res)->second->loc.value_or(SourceLocation())), node.loc);
     }

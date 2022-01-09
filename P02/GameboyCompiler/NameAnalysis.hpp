@@ -24,8 +24,9 @@ class NameError : public std::exception {
 
 class NameAnalysis {
     public:
-        static void annotateAST(AST &ast);
+        static std::shared_ptr<SymbolTable> annotateAST(AST &ast);
 
+    private:
         static void annotateNode(SymbolTable &st, const AST::MutNodePtr &node);
 
         static void annotateNode(SymbolTable &st, VariableDeclarationNode &node);
@@ -37,7 +38,6 @@ class NameAnalysis {
         static void annotateNode(SymbolTable &st, MethodCallNode &node);
 
         static void annotateNode(SymbolTable &st, ArithmeticExpressionNode &node);
-
 
         static void prefillSymbolTable(SymbolTable &table);
 };

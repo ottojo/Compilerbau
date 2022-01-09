@@ -14,7 +14,7 @@
 
 class CodeGenerator {
     public:
-        static void generateAssembly(AssemblyOutput &out, const AST &ast);
+        static void generateAssembly(AssemblyOutput &out, const AST &ast, SymbolTable &symbolTable);
 
     private:
         /**
@@ -22,20 +22,23 @@ class CodeGenerator {
          * @param out Assembly output
          * @param node Generic pointer to a node
          */
-        static void generateAssembly(AssemblyOutput &out, const AST::MutNodePtr &node);
+        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const AST::MutNodePtr &node);
 
-        static void generateAssembly(AssemblyOutput &out, const ArithmeticExpressionNode &node);
+        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const ArithmeticExpressionNode &node);
 
-        static void generateAssembly(AssemblyOutput &out, const MethodCallNode &node);
+        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const MethodCallNode &node);
 
-        static void generateAssembly(AssemblyOutput &out, const VariableDeclarationNode &node);
+        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const VariableDeclarationNode &node);
 
-        static void generateAssembly(AssemblyOutput &out, const VariableAssignmentNode &node);
+        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const VariableAssignmentNode &node);
 
-        static void generateAssembly(AssemblyOutput &out, const IntegerConstantNode &node);
+        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const IntegerConstantNode &node);
 
-        static void generateAssembly(AssemblyOutput &out, const VariableAccessNode &node);
+        static void generateAssembly(AssemblyOutput &out,const SymbolTable &symbolTable, const VariableAccessNode &node);
 
+        static void assignGlobals(AssemblyOutput &out, SymbolTable &symbolTable);
+
+        static uint16_t addressOfGlobal(const std::string& id, const SymbolTable &symbolTable);
 
 };
 

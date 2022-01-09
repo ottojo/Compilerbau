@@ -22,6 +22,10 @@ enum class Reg16 {
     BC, DE, HL
 };
 
+struct Address {
+    uint16_t a;
+};
+
 
 class AssemblyOutput {
     public:
@@ -29,11 +33,12 @@ class AssemblyOutput {
         explicit AssemblyOutput(const std::string &filename);
 
         void preamble();
+
         void finalize();
 
         void comment(const std::string &comment);
 
-        void load16BitConst(Reg16 reg, int16_t i);
+        void load16BitConst(Reg16 reg, uint16_t i);
 
         /**
          * Loads 16bit const into BC and pushes it to stack
@@ -43,6 +48,14 @@ class AssemblyOutput {
         void push16BitReg(Reg16 reg);
 
         void pop16BitReg(Reg16 reg);
+
+        void ldReg(Reg target, Reg src);
+
+        void pop16ToAddr(Address a);
+
+        void push16FromAddr(Address a);
+
+        //void
 
         /**
          * adds 2 numbers from stack, pushes result to stack.

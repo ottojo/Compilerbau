@@ -40,8 +40,8 @@ void AssemblyOutput::push16BitReg(Reg16 reg) {
     fmt::print(outputFile, "PUSH {} ; stack <- {}\n", reg, reg);
 }
 
-void AssemblyOutput::load16BitConst(Reg16 reg, int16_t i) {
-    fmt::print(outputFile, "LD {}, {}; {} <- {}\n", reg, i, reg, i);
+void AssemblyOutput::load16BitConst(Reg16 reg, uint16_t i) {
+    fmt::print(outputFile, "LD {}, ${:X}; {} <- ${:X}\n", reg, i, reg, i);
 }
 
 void AssemblyOutput::builtin_printWord() {
@@ -67,3 +67,29 @@ void AssemblyOutput::finalize() {
     fmt::print(outputFile, "ret\n");
     fmt::print(outputFile, ".ends\n");
 }
+
+void AssemblyOutput::pop16ToAddr(Address a) {
+    comment(fmt::format("*{:#x} <- stack", a.a));
+    pop16BitReg(Reg16::BC);
+    ldReg(Reg::A, Reg::B);
+    load16BitConst(Reg16::HL, a.a);
+    fmt::print(outputFile, "LDI (HL), A\n");
+    ldReg(Reg::A, Reg::C);
+    fmt::print(outputFile, "LDI (HL), A\n");
+}
+
+void AssemblyOutput::ldReg(Reg target, Reg src) {
+    fmt::print(outputFile, "LD {}, {}; {} <- {}\n", target, src, target, src);
+}
+
+void AssemblyOutput::push16FromAddr(Address a) {
+    comment(fmt::format("stack <- *{:#x}", a.a));
+    load16BitConst(Reg16::HL, a.a);
+    fmt::print(outputFile, "LDI A, (HL)\n");
+    ldReg(Reg::B, Reg::A);
+    fmt::print(outputFile, "LDI A, (HL)\n");
+    ldReg(Reg::C, Reg::A);
+    push16BitReg(Reg16::BC);
+}
+
+
