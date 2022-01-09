@@ -4,7 +4,7 @@
 #include "GameboyLanguageLexer.h"
 #include "GameboyLanguageParser.h"
 #include "GameboyVisitor.hpp"
-
+#include "CodeGenerator.hpp"
 
 int main() {
     std::string filename = "tests/inputs/assignments.gb";
@@ -27,7 +27,7 @@ int main() {
     //fmt::print("{}\n", ast.nodes.size());
 
     AssemblyOutput output("out.asm");
-    ast.generateCode(output);
+    CodeGenerator::generateAssembly(output, ast);
 
     return 0;
 }
