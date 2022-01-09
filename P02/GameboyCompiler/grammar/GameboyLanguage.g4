@@ -28,3 +28,4 @@ COMMA: ',';
 LPAREN: '(';
 RPAREN: ')';
 WS: [ \t]+ -> skip;
+COMMENT: '//'~[\r\n]* -> skip;
