@@ -99,9 +99,6 @@ void NameAnalysis::annotateNode(SymbolTable &st, ArithmeticExpressionNode &node)
     annotateNode(st, node.rhs);
 }
 
-const char *NameError::what() const noexcept {
-    return message.c_str();
-}
 
 NameError::NameError(const std::string &m, const SourceLocation &loc) :
-        message(fmt::format("{}: Name analysis error: {}", loc, m)) {}
+        CompilerError(fmt::format("Name analysis error: {}", m), loc) {}

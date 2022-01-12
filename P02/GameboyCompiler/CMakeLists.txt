@@ -35,6 +35,7 @@ set(SOURCES
         SourceLocation.cpp
         SymbolTable.cpp
         ScopeIndent.cpp
+        CompilerError.cpp
         )
 
 add_executable(GameboyCompiler ${SOURCES})

@@ -4,6 +4,7 @@
 
 #include <fmt/core.h>
 #include "ASTGenerationVisitor.hpp"
+#include "CompilerError.hpp"
 
 
 antlrcpp::Any ASTGenerationVisitor::visitProgram(gbparser::GameboyLanguageParser::ProgramContext *ctx) {
@@ -15,7 +16,12 @@ antlrcpp::Any ASTGenerationVisitor::visitProgram(gbparser::GameboyLanguageParser
 antlrcpp::Any ASTGenerationVisitor::visitStatementList(gbparser::GameboyLanguageParser::StatementListContext *ctx) {
     std::vector<AST::MutNodePtr> nodeList;
     for (const auto &stmt: ctx->statement()) {
-        nodeList.emplace_back(visitStatement(stmt).as<AST::MutNodePtr>());
+        auto a = visitStatement(stmt);
+        try {
+            nodeList.emplace_back(a.as<AST::MutNodePtr>());
+        } catch (std::bad_cast &e) {
+            throw CompilerError("Statement could not be parsed!", SourceLocation(stmt->start));
+        }
     }
     return nodeList;
 }
@@ -27,14 +33,14 @@ antlrcpp::Any ASTGenerationVisitor::visitStatement(gbparser::GameboyLanguagePars
 antlrcpp::Any ASTGenerationVisitor::visitAssignment(gbparser::GameboyLanguageParser::AssignmentContext *ctx) {
     AST::MutNodePtr node = std::make_shared<VariableAssignmentNode>(
             SourceLocation(ctx->getStart()),
-            ctx->ID()->getText(),
-            visitExpression(ctx->expression()).as<AST::MutNodePtr>());
+            ctx->variableName->getText(),
+            visitExpression(ctx->rhs).as<AST::MutNodePtr>());
     return node;
 }
 
 antlrcpp::Any ASTGenerationVisitor::visitExpression(gbparser::GameboyLanguageParser::ExpressionContext *ctx) {
-    if (ctx->term().size() == 1) {
-        return visitTerm(ctx->term(0));
+    if (ctx->singleTerm != nullptr) {
+        return visitTerm(ctx->singleTerm);
     } else {
         ArithmeticExpressionNode::Operation op;
         if (ctx->PLUS()) {
@@ -53,19 +59,18 @@ antlrcpp::Any ASTGenerationVisitor::visitExpression(gbparser::GameboyLanguagePar
         AST::MutNodePtr node = std::make_shared<ArithmeticExpressionNode>(
                 SourceLocation(ctx->getStart()),
                 op,
-                visitTerm(ctx->term(0)).as<AST::MutNodePtr>(),
-                visitTerm(ctx->term(1)).as<AST::MutNodePtr>());
+                visitTerm(ctx->lhs).as<AST::MutNodePtr>(),
+                visitTerm(ctx->rhs).as<AST::MutNodePtr>());
         return node;
     }
 }
 
 antlrcpp::Any ASTGenerationVisitor::visitTerm(gbparser::GameboyLanguageParser::TermContext *ctx) {
-
     if (ctx->literal()) {
         return visitLiteral(ctx->literal());
-    } else if (ctx->ID()) {
+    } else if (ctx->variable) {
         AST::MutNodePtr node = std::make_shared<VariableAccessNode>(SourceLocation(ctx->getStart()),
-                                                                    ctx->ID()->getText());
+                                                                    ctx->variable->getText());
         return node;
     } else if (ctx->call()) {
         return visitCall(ctx->call());
@@ -85,7 +90,7 @@ antlrcpp::Any ASTGenerationVisitor::visitLiteral(gbparser::GameboyLanguageParser
 antlrcpp::Any ASTGenerationVisitor::visitCall(gbparser::GameboyLanguageParser::CallContext *ctx) {
     AST::MutNodePtr node = std::make_shared<MethodCallNode>(
             SourceLocation(ctx->getStart()),
-            ctx->ID()->getText(),
+            ctx->functionName->getText(),
             ctx->parameterList() ? visitParameterList(ctx->parameterList()).as<std::vector<AST::MutNodePtr>>()
                                  : std::vector<AST::MutNodePtr>{});
     return node;
@@ -95,8 +100,8 @@ antlrcpp::Any ASTGenerationVisitor::visitParameterList(gbparser::GameboyLanguage
     std::vector<AST::MutNodePtr> list;
     auto remainingList = ctx;
     do {
-        list.emplace_back(visitExpression(remainingList->expression()).as<AST::MutNodePtr>());
-        remainingList = remainingList->parameterList();
+        list.emplace_back(visitExpression(remainingList->firstExpression).as<AST::MutNodePtr>());
+        remainingList = remainingList->remainingList;
     } while (remainingList != nullptr);
     return list;
 }
@@ -105,8 +110,8 @@ antlrcpp::Any ASTGenerationVisitor::visitDeclaration(gbparser::GameboyLanguagePa
 
     AST::MutNodePtr node = std::make_shared<VariableDeclarationNode>(
             SourceLocation(ctx->getStart()),
-            ctx->ID(0)->getText(),
-            ctx->ID(1)->getText(),
+            ctx->typeName->getText(),
+            ctx->variableName->getText(),
             visitExpression(ctx->expression()).as<AST::MutNodePtr>());
     return node;
 }

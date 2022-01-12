@@ -11,15 +11,11 @@
 
 #include "AST.hpp"
 #include "SymbolTable.hpp"
+#include "CompilerError.hpp"
 
-class NameError : public std::exception {
+class NameError : public CompilerError {
     public:
         NameError(const std::string &m, const SourceLocation &loc);
-
-        [[nodiscard]] const char *what() const noexcept override;
-
-    private:
-        std::string message;
 };
 
 class NameAnalysis {
