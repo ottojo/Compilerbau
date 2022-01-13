@@ -5,7 +5,7 @@
  * Description here TODO
  */
 
-#include "CompilerError.hpp"
+#include <gbc/CompilerError.hpp>
 
 
 CompilerError::CompilerError(const std::string &m, const SourceLocation &loc) :

@@ -5,7 +5,7 @@
  * Description here TODO
  */
 
-#include "AST.hpp"
+#include <gbc/AST.hpp>
 
 #include <utility>
 

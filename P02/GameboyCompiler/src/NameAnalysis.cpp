@@ -5,8 +5,7 @@
  * Description here TODO
  */
 
-#include "NameAnalysis.hpp"
-#include "SymbolTable.hpp"
+#include <gbc/NameAnalysis.hpp>
 
 std::shared_ptr<SymbolTable> NameAnalysis::annotateAST(AST &ast) {
     auto st = std::make_shared<SymbolTable>();

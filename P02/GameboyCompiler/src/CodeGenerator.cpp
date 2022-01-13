@@ -5,8 +5,8 @@
  * Description here TODO
  */
 
-#include "CodeGenerator.hpp"
-#include "ScopeIndent.hpp"
+#include <gbc/CodeGenerator.hpp>
+#include <gbc/ScopeIndent.hpp>
 
 void CodeGenerator::generateAssembly() {
     out.preamble();

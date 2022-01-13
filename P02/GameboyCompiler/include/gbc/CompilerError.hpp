@@ -10,7 +10,7 @@
 
 #include <exception>
 #include <string>
-#include "SourceLocation.hpp"
+#include <gbc/SourceLocation.hpp>
 
 class CompilerError : public std::exception {
     public:

@@ -12,7 +12,7 @@
 #include <cstdio>
 #include <string>
 #include <fmt/format.h>
-#include "Reg.hpp"
+#include <gbc/Reg.hpp>
 
 struct Address {
     uint16_t a;

@@ -9,9 +9,9 @@
 #define GAMEBOYCOMPILER_NAMEANALYSIS_HPP
 
 
-#include "AST.hpp"
-#include "SymbolTable.hpp"
-#include "CompilerError.hpp"
+#include <gbc/AST.hpp>
+#include <gbc/SymbolTable.hpp>
+#include <gbc/CompilerError.hpp>
 
 class NameError : public CompilerError {
     public:

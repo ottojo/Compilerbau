@@ -10,8 +10,8 @@
 
 #include <memory>
 #include <vector>
-#include "AssemblyOutput.hpp"
-#include "SymbolTable.hpp"
+#include <gbc/AssemblyOutput.hpp>
+#include <gbc/SymbolTable.hpp>
 
 enum class ASTNodeType {
     ArithmeticExpression,

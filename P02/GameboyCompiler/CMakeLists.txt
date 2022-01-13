@@ -26,37 +26,38 @@ list(APPEND DEBUG_FLAGS ${COMMON_FLAGS} -O0)
 
 set(SOURCES
         ${ANTLR4_SRC_FILES_${GENERATED_PARSER_NAME}}
-        main.cpp
-        AST.cpp
-        AssemblyOutput.cpp
-        CodeGenerator.cpp
-        ASTGenerationVisitor.cpp
-        NameAnalysis.cpp
-        SourceLocation.cpp
-        SymbolTable.cpp
-        ScopeIndent.cpp
-        CompilerError.cpp
+        src/AST.cpp
+        src/AssemblyOutput.cpp
+        src/CodeGenerator.cpp
+        src/ASTGenerationVisitor.cpp
+        src/NameAnalysis.cpp
+        src/SourceLocation.cpp
+        src/SymbolTable.cpp
+        src/ScopeIndent.cpp
+        src/CompilerError.cpp
         )
 
-add_executable(GameboyCompiler ${SOURCES})
-target_link_libraries(GameboyCompiler PRIVATE antlr4_static fmt::fmt)
-target_include_directories(GameboyCompiler PRIVATE ${ANTLR4_INCLUDE_DIR} ${ANTLR4_INCLUDE_DIR_${GENERATED_PARSER_NAME}})
+add_library(gbc ${SOURCES})
+target_link_libraries(gbc PRIVATE fmt::fmt PUBLIC antlr4_static)
+target_include_directories(gbc PRIVATE src PUBLIC include ${ANTLR4_INCLUDE_DIR}  ${ANTLR4_INCLUDE_DIR_${GENERATED_PARSER_NAME}})
 
+add_executable(GameboyCompiler src/main.cpp)
+target_link_libraries(GameboyCompiler PUBLIC gbc)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
 if (CMAKE_BUILD_TYPE MATCHES Release)
-    target_compile_options(GameboyCompiler
+    target_compile_options(gbc
             PRIVATE
             ${RELEASE_FLAGS}
             )
 elseif (CMAKE_BUILD_TYPE MATCHES Debug)
-    target_compile_options(GameboyCompiler
+    target_compile_options(gbc
             PRIVATE
             ${DEBUG_FLAGS}
             )
 endif ()
 
-#add_subdirectory(tests)
+add_subdirectory(tests)

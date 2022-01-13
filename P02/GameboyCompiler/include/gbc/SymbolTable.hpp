@@ -11,7 +11,7 @@
 #include <string>
 #include <optional>
 #include <map>
-#include "SourceLocation.hpp"
+#include <gbc/SourceLocation.hpp>
 
 enum class DeclType {
     Function,

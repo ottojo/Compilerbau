@@ -1,11 +1,9 @@
 #include <antlr4-runtime.h>
-#include <fmt/core.h>
-#include <fmt/format.h>
 #include "GameboyLanguageLexer.h"
 #include "GameboyLanguageParser.h"
-#include "ASTGenerationVisitor.hpp"
-#include "CodeGenerator.hpp"
-#include "NameAnalysis.hpp"
+#include <gbc/ASTGenerationVisitor.hpp>
+#include <gbc/CodeGenerator.hpp>
+#include <gbc/NameAnalysis.hpp>
 
 int main() {
     std::string filename = "tests/inputs/assignments.gb";

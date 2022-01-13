@@ -5,7 +5,7 @@
  * Description here TODO
  */
 
-#include "SourceLocation.hpp"
+#include <gbc/SourceLocation.hpp>
 
 #include <TokenSource.h>
 

@@ -6,7 +6,7 @@
  */
 
 #include <fmt/format.h>
-#include "AssemblyOutput.hpp"
+#include <gbc/AssemblyOutput.hpp>
 
 AssemblyOutput::AssemblyOutput(const std::string &filename) : outputFile(std::fopen(filename.c_str(), "w")) {
     if (!outputFile) {

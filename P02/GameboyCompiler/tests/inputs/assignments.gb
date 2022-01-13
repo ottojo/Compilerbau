@@ -1,15 +1,10 @@
-printWord(300+(15+(1+(4+(45+(2+(1+56)))))))
-int16 a = 7
-int16 b = 1
-int16 c = a + b
-printWord(a+b)
+int16 a = 3
+int16 b = 4;
+printWord(a + b)
+//printWord = 3
+printWord(2+3)
+printWord()
 
-int16 asdf = 3;
-c = asdf
+//printWord = 7
 
-int16 f = c;
-
-f = 5;
-
-int result = a + (b + (nonexistent + c))
-
+//$&&$"§(

@@ -9,8 +9,8 @@
 #define GAMEBOYCOMPILER_CODEGENERATOR_HPP
 
 
-#include "AssemblyOutput.hpp"
-#include "AST.hpp"
+#include <gbc/AssemblyOutput.hpp>
+#include <gbc/AST.hpp>
 
 class CodeGenerator {
     public:

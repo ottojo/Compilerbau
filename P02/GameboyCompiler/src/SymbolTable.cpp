@@ -5,7 +5,7 @@
  * Description here TODO
  */
 
-#include "SymbolTable.hpp"
+#include <gbc/SymbolTable.hpp>
 
 bool SymbolTable::enter(const std::string &id, const VariableDeclaration &decl) {
     auto[_, inserted] = table.emplace(id, std::make_unique<VariableDeclaration>(decl));

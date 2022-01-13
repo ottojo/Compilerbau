@@ -5,7 +5,7 @@
  * Description here TODO
  */
 
-#include "ScopeIndent.hpp"
+#include <gbc/ScopeIndent.hpp>
 
 ScopeIndent::ScopeIndent(AssemblyOutput &out) : out(out){
    out.indent();

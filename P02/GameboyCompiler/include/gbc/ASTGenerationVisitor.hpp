@@ -7,7 +7,7 @@
 
 #include "GameboyLanguageBaseVisitor.h"
 
-#include "AST.hpp"
+#include <gbc/AST.hpp>
 
 class ASTGenerationVisitor : public gbparser::GameboyLanguageBaseVisitor {
     public:
@@ -15,7 +15,7 @@ class ASTGenerationVisitor : public gbparser::GameboyLanguageBaseVisitor {
 
         antlrcpp::Any visitProgram(gbparser::GameboyLanguageParser::ProgramContext *ctx) override;
 
-        antlrcpp::Any visitDeclaration(gbparser::GameboyLanguageParser::DeclarationContext *ctx) override;
+        antlrcpp::Any visitVarInitialization(gbparser::GameboyLanguageParser::VarInitializationContext *ctx) override;
 
         antlrcpp::Any visitStatementList(gbparser::GameboyLanguageParser::StatementListContext *ctx) override;
 

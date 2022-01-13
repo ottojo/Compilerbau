@@ -8,7 +8,7 @@
 #ifndef GAMEBOYCOMPILER_SCOPEINDENT_HPP
 #define GAMEBOYCOMPILER_SCOPEINDENT_HPP
 
-#include "AssemblyOutput.hpp"
+#include <gbc/AssemblyOutput.hpp>
 
 class ScopeIndent {
     public:
