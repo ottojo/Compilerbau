@@ -16,7 +16,7 @@ class CodeGenerator {
     public:
 
     public:
-        CodeGenerator(AssemblyOutput &out, const AST &ast, SymbolTable &symbolTable);
+        CodeGenerator(AssemblyOutput &out, const AST &ast);
 
         void generateAssembly();
 
@@ -24,15 +24,8 @@ class CodeGenerator {
 
         AssemblyOutput &out;
         const AST &ast;
-        SymbolTable &symbolTable;
 
         int ind = 0;
-
-        /**
-         * Generic method that calls the generation method for the specific type of node
-         * @param node Generic pointer to a node
-         */
-        void generateAssembly(const AST::MutNodePtr &node);
 
         void generateAssembly(const ArithmeticExpressionNode &node);
 
@@ -45,6 +38,8 @@ class CodeGenerator {
         void generateAssembly(const IntegerConstantNode &node);
 
         void generateAssembly(const VariableAccessNode &node);
+
+        void generateAssembly(const MethodDefinitionNode &node);
 
         void assignGlobals();
 

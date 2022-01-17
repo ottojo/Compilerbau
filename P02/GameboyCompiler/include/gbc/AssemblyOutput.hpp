@@ -62,6 +62,10 @@ class AssemblyOutput {
 
         void call(const std::string &name);
 
+        void sectionWithLabel(const std::string &name);
+
+        void sectionEnd();
+
         void indent();
 
         void unindent();

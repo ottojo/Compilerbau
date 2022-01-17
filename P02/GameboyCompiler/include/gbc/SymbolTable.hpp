@@ -45,6 +45,10 @@ class VariableDeclaration : public Declaration {
 
 class FunctionDeclaration : public Declaration {
     public:
+        FunctionDeclaration();
+
+        explicit FunctionDeclaration(const SourceLocation &loc);
+
         DeclType getType() override;
 
         ~FunctionDeclaration() override = default;

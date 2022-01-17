@@ -104,4 +104,13 @@ void AssemblyOutput::unindent() {
     ind -= 4;
 }
 
+void AssemblyOutput::sectionWithLabel(const std::string &name) {
+    print(fmt::format(".section \"{}\"\n", name));
+    print(fmt::format("{}:\n", name));
+}
+
+void AssemblyOutput::sectionEnd() {
+    print(".ends\n");
+}
+
 

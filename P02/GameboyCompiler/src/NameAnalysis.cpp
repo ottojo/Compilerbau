@@ -7,40 +7,19 @@
 
 #include <gbc/NameAnalysis.hpp>
 
-std::shared_ptr<SymbolTable> NameAnalysis::annotateAST(AST &ast) {
-    auto st = std::make_shared<SymbolTable>();
-    prefillSymbolTable(*st);
-    for (auto &node: ast.nodes) {
-        annotateNode(*st, node);
-    }
-    return st;
-}
+void NameAnalysis::annotateAST(AST &ast) {
 
-void NameAnalysis::annotateNode(SymbolTable &st, const AST::MutNodePtr &node) {
-    using enum ASTNodeType;
-    switch (node->getType()) {
-        case MethodCall:
-            annotateNode(st, *std::dynamic_pointer_cast<MethodCallNode>(node));
-            break;
-        case VariableDeclaration:
-            annotateNode(st, *std::dynamic_pointer_cast<VariableDeclarationNode>(node));
-            break;
-        case VariableAssignment:
-            annotateNode(st, *std::dynamic_pointer_cast<VariableAssignmentNode>(node));
-            break;
-        case VariableAccess:
-            annotateNode(st, *std::dynamic_pointer_cast<VariableAccessNode>(node));
-            break;
-        case ArithmeticExpression:
-            annotateNode(st, *std::dynamic_pointer_cast<ArithmeticExpressionNode>(node));
-            break;
-        case Constant:
-            break;
+    if (ast.symbolTable != nullptr) {
+        throw std::runtime_error{"AST already has symbol table!"};
     }
+    ast.symbolTable = std::make_unique<SymbolTable>();
+
+    prefillSymbolTable(*ast.symbolTable);
+    ast.traverse([&ast](auto &node) { annotateNode(*ast.symbolTable, node); });
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, VariableDeclarationNode &node) {
-    annotateNode(st, node.rhs);
+    node.rhs->visit([&st](auto &node) { annotateNode(st, node); });
     if (not st.enter(node.name, VariableDeclaration(node.loc))) {
         // Entry failed, name already used
         auto prev = st.lookup(node.name);
@@ -62,7 +41,7 @@ void NameAnalysis::annotateNode(SymbolTable &st, VariableAccessNode &node) {
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, VariableAssignmentNode &node) {
-    annotateNode(st, node.rhs);
+    node.rhs->visit([&st](auto &node) { annotateNode(st, node); });
     auto res = st.lookup(node.name);
     if (not res.has_value()) {
         throw NameError(fmt::format("Tried to assign to undeclared variable \"{}\"!", node.name), node.loc);
@@ -76,7 +55,7 @@ void NameAnalysis::annotateNode(SymbolTable &st, VariableAssignmentNode &node) {
 
 void NameAnalysis::annotateNode(SymbolTable &st, MethodCallNode &node) {
     for (auto &n: node.argumentList) {
-        annotateNode(st, n);
+        n->visit([&st](auto &node) { annotateNode(st, node); });
     }
     auto res = st.lookup(node.name);
     if (not res.has_value()) {
@@ -94,8 +73,21 @@ void NameAnalysis::prefillSymbolTable(SymbolTable &table) {
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, ArithmeticExpressionNode &node) {
-    annotateNode(st, node.lhs);
-    annotateNode(st, node.rhs);
+    node.lhs->visit([&st](auto &node) { annotateNode(st, node); });
+    node.rhs->visit([&st](auto &node) { annotateNode(st, node); });
+}
+
+void NameAnalysis::annotateNode(SymbolTable &, IntegerConstantNode &) {}
+
+void NameAnalysis::annotateNode(SymbolTable &st, MethodDefinitionNode &node) {
+    FunctionDeclaration decl(node.loc);
+    auto entered = st.enter(node.name, decl);
+    if(not entered){
+        // Entry failed, name already used
+        auto prev = st.lookup(node.name);
+        throw NameError(fmt::format("Tried to declare previously declared function \"{}\"! Previous declaration at {}",
+                                    node.name, prev.value()->second->loc.value_or(SourceLocation())), node.loc);
+    }
 }
 
 

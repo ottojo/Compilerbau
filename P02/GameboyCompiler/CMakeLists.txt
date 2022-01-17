@@ -35,7 +35,8 @@ set(SOURCES
         src/SymbolTable.cpp
         src/ScopeIndent.cpp
         src/CompilerError.cpp
-        )
+        src/TypeTable.cpp
+        src/TypeAnalysis.cpp src/TypeAnalysis.hpp)
 
 add_library(gbc ${SOURCES})
 target_link_libraries(gbc PRIVATE fmt::fmt PUBLIC antlr4_static)

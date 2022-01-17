@@ -1,10 +1,12 @@
-int16 a = 3
-int16 b = 4;
-printWord(a + b)
-//printWord = 3
-printWord(2+3)
-printWord()
 
-//printWord = 7
+func add(int16 la, int16 lb) -> int16 {
+    int16 lc = la + lb;
+    return lc;
+}
 
-//$&&$"§(
+//printWord(add3(1, 2, 3))
+
+int16 a = 1;
+int16 b = 2;
+int16 c = add(a, b);
+printWord(c);

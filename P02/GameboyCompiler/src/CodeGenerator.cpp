@@ -7,40 +7,13 @@
 
 #include <gbc/CodeGenerator.hpp>
 #include <gbc/ScopeIndent.hpp>
+#include <fmt/ranges.h>
 
 void CodeGenerator::generateAssembly() {
     out.preamble();
     assignGlobals();
-    for (const auto &node: ast.nodes) {
-        generateAssembly(node);
-    }
+    ast.traverse([this](auto &node) { generateAssembly(node); });
     out.finalize();
-}
-
-void CodeGenerator::generateAssembly(const AST::MutNodePtr &node) {
-    using enum ASTNodeType;
-    switch (node->getType()) {
-        case ArithmeticExpression:
-            generateAssembly(*std::dynamic_pointer_cast<ArithmeticExpressionNode>(node));
-            return;
-        case MethodCall:
-            generateAssembly(*std::dynamic_pointer_cast<MethodCallNode>(node));
-            return;
-        case VariableDeclaration:
-            generateAssembly(*std::dynamic_pointer_cast<VariableDeclarationNode>(node));
-            return;
-        case VariableAssignment:
-            generateAssembly(*std::dynamic_pointer_cast<VariableAssignmentNode>(node));
-            return;
-        case Constant:
-            generateAssembly(*std::dynamic_pointer_cast<IntegerConstantNode>(node));
-            return;
-        case VariableAccess:
-            generateAssembly(*std::dynamic_pointer_cast<VariableAccessNode>(node));
-            return;
-    }
-
-    throw std::runtime_error("Unknown node type");
 }
 
 void CodeGenerator::generateAssembly(const ArithmeticExpressionNode &node) {
@@ -49,12 +22,12 @@ void CodeGenerator::generateAssembly(const ArithmeticExpressionNode &node) {
     {
         out.comment("LHS:");
         ScopeIndent i2(out);
-        generateAssembly(node.lhs);
+        node.lhs->visit([this](auto &node) { generateAssembly(node); });
     }
     {
         out.comment("RHS:");
         ScopeIndent i2(out);
-        generateAssembly(node.rhs);
+        node.rhs->visit([this](auto &node) { generateAssembly(node); });
     }
     {
         out.comment("OP:");
@@ -80,17 +53,19 @@ void CodeGenerator::generateAssembly(const MethodCallNode &node) {
         out.comment("Evaluate arguments:");
         ScopeIndent i2(out);
         for (const auto &arg: node.argumentList) {
-            generateAssembly(arg);
+            arg->visit([this](auto &node) { generateAssembly(node); });
         }
     }
+    // Arguments are now on stack
     {
         out.comment("Call func:");
         ScopeIndent i2(out);
-        if (node.name == "printWord") {
+
+        if (node.builtinMethod) {
             out.pop16BitReg(Reg16::HL);
-            out.call("printWord");
+            out.call(node.name);
         } else {
-            throw std::runtime_error{"Unknown function"};
+
         }
     }
 }
@@ -101,9 +76,9 @@ void CodeGenerator::generateAssembly(const VariableDeclarationNode &node) {
     {
         out.comment(fmt::format("Evaluate RHS for initialization of {}", node.name));
         ScopeIndent i2(out);
-        generateAssembly(node.rhs);
+        node.rhs->visit([this](auto &node) { generateAssembly(node); });
     }
-    auto addr = addressOfGlobal(node.name, symbolTable);
+    auto addr = addressOfGlobal(node.name, *ast.symbolTable);
     {
         out.comment(fmt::format("Initializing {} at address {:#x}", node.name, addr));
         ScopeIndent i2(out);
@@ -115,8 +90,7 @@ void CodeGenerator::generateAssembly(const VariableAssignmentNode &/*node*/) {
     throw std::runtime_error{"Code generation for variable assignment not implemented"};
 }
 
-void
-CodeGenerator::generateAssembly(const IntegerConstantNode &node) {
+void CodeGenerator::generateAssembly(const IntegerConstantNode &node) {
     // TODO: Range
     out.push16BitConst(node.value);
 
@@ -124,7 +98,7 @@ CodeGenerator::generateAssembly(const IntegerConstantNode &node) {
 
 void CodeGenerator::generateAssembly(const VariableAccessNode &node) {
 
-    auto addr = addressOfGlobal(node.name, symbolTable);
+    auto addr = addressOfGlobal(node.name, *ast.symbolTable);
     out.comment(fmt::format("Reading {} from address {:#x}", node.name, addr));
     ScopeIndent i(out);
     out.push16FromAddr(Address{.a=addr});
@@ -133,7 +107,7 @@ void CodeGenerator::generateAssembly(const VariableAccessNode &node) {
 void CodeGenerator::assignGlobals() {
     int nextFree = 0xC000;
     constexpr int lastAddress = 0xDFFF;
-    for (auto &[id, s]: symbolTable.table) {
+    for (auto &[id, s]: ast.symbolTable->table) {
         if (s->getType() == DeclType::Variable) {
             auto addr = nextFree;
             nextFree += 2;
@@ -151,8 +125,22 @@ uint16_t CodeGenerator::addressOfGlobal(const std::string &id, const SymbolTable
     return varDecl->address;
 }
 
-CodeGenerator::CodeGenerator(AssemblyOutput &out, const AST &ast, SymbolTable &symbolTable) :
+CodeGenerator::CodeGenerator(AssemblyOutput &out, const AST &ast) :
         out(out),
-        ast(ast),
-        symbolTable(symbolTable) {}
+        ast(ast) {}
+
+
+void CodeGenerator::generateAssembly(const MethodDefinitionNode &node) {
+    // TODO: Functions not in main section
+    out.comment(fmt::format("{}({}) -> {}", node.name, fmt::join(node.arguments, ", "),
+                            node.returnTypeName.value_or("<void>")));
+    out.sectionWithLabel("_func_" + node.name);
+
+    for (const auto &stmt: node.methodBody) {
+        stmt->visit([this](auto &node) { generateAssembly(node); });
+    }
+
+    out.sectionEnd();
+    // TODO
+}
 

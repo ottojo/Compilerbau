@@ -32,6 +32,8 @@ class ASTGenerationVisitor : public gbparser::GameboyLanguageBaseVisitor {
         antlrcpp::Any visitCall(gbparser::GameboyLanguageParser::CallContext *ctx) override;
 
         antlrcpp::Any visitParameterList(gbparser::GameboyLanguageParser::ParameterListContext *ctx) override;
+
+        antlrcpp::Any visitFuncDeclaration(gbparser::GameboyLanguageParser::FuncDeclarationContext *ctx) override;
 };
 
 

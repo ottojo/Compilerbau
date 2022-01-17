@@ -5,11 +5,13 @@
 #include <gtest/gtest.h>
 #include "GameboyLanguageLexer.h"
 #include "GameboyLanguageParser.h"
-#include "gbc/ASTGenerationVisitor.hpp"
+#include <gbc/ASTGenerationVisitor.hpp>
+#include <gbc/CompilerError.hpp>
 
 struct CTp {
     std::string name;
     std::string sourceCode;
+    bool shouldCompile;
 };
 
 class CompileTest : public ::testing::TestWithParam<CTp> {
@@ -27,15 +29,23 @@ std::string compileTestName(const testing::TestParamInfo<CTp> &info) {
 
 TEST_P(CompileTest, ASTGeneration) {
     gbparser::GameboyLanguageLexer lexer(&sourceStream);
-    EXPECT_EQ(lexer.getNumberOfSyntaxErrors(), 0);
     antlr4::CommonTokenStream tokenStream(&lexer);
     gbparser::GameboyLanguageParser parser(&tokenStream);
-    EXPECT_EQ(parser.getNumberOfSyntaxErrors(), 0);
+    auto programParseTree = parser.program();
+    if (GetParam().shouldCompile) {
+        EXPECT_EQ(lexer.getNumberOfSyntaxErrors(), 0);
+        EXPECT_EQ(parser.getNumberOfSyntaxErrors(), 0);
+    } else {
+        EXPECT_GT(lexer.getNumberOfSyntaxErrors() + parser.getNumberOfSyntaxErrors(), 0);
+    }
 
     ASTGenerationVisitor visitor;
-    EXPECT_NO_THROW(AST ast = visitor.generateAST(parser.program()));
+    if (GetParam().shouldCompile) {
+        EXPECT_NO_THROW(AST ast = visitor.generateAST(programParseTree));
+    } else {
+        EXPECT_THROW(AST ast = visitor.generateAST(programParseTree), CompilerError);
+    }
 }
-
 
 TEST_P(CompileTest, CodeGen) {
 
@@ -44,6 +54,7 @@ TEST_P(CompileTest, CodeGen) {
 INSTANTIATE_TEST_SUITE_P(FirstSet,
                          CompileTest,
                          testing::Values(
-                                 CTp{"variable_initialization", "int a = 3;"}
+                                 CTp{"variable_initialization", "int a = 3;", true},
+                                 CTp{"parser_fail", "int a = ;", false}
                          ),
                          compileTestName);

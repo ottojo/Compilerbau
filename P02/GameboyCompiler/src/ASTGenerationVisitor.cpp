@@ -20,7 +20,8 @@ antlrcpp::Any ASTGenerationVisitor::visitStatementList(gbparser::GameboyLanguage
         try {
             nodeList.emplace_back(a.as<AST::MutNodePtr>());
         } catch (std::bad_cast &e) {
-            throw CompilerError("Statement could not be parsed!", SourceLocation(stmt->start));
+            throw CompilerError("Statement could not be parsed!: " + stmt->toStringTree(true),
+                                SourceLocation(stmt->start));
         }
     }
     return nodeList;
@@ -109,14 +110,33 @@ ASTGenerationVisitor::visitVarInitialization(gbparser::GameboyLanguageParser::Va
 
     AST::MutNodePtr node = std::make_shared<VariableDeclarationNode>(
             SourceLocation(ctx->getStart()),
-            ctx->varDeclaration()->getText(),
-            ctx->varDeclaration()->getText(),
+            ctx->varDeclaration()->typeName->getText(),
+            ctx->varDeclaration()->variableName->getText(),
             visit(ctx->expression()).as<AST::MutNodePtr>());
     return node;
 }
 
 AST ASTGenerationVisitor::generateAST(gbparser::GameboyLanguageParser::ProgramContext *ctx) {
     auto ast = visitProgram(ctx);
-    return ast.as<AST>();
+    return std::move(ast.as<AST>());
 }
 
+antlrcpp::Any ASTGenerationVisitor::visitFuncDeclaration(gbparser::GameboyLanguageParser::FuncDeclarationContext *ctx) {
+    std::vector<MethodArgument> args;
+    for (const auto &a: ctx->funcSignature()->argumentList()->varDeclaration()) {
+        args.emplace_back(MethodArgument{.typeName=a->typeName->getText(), .identifier=a->variableName->getText()});
+    }
+
+    std::optional<std::string> ret = std::nullopt;
+    if (ctx->funcSignature()->returnType != nullptr) {
+        ret = ctx->funcSignature()->returnType->getText();
+    }
+
+    AST::MutNodePtr node = std::make_shared<MethodDefinitionNode>(
+            SourceLocation(ctx->getStart()),
+            ctx->funcSignature()->funcName->getText(),
+            args,
+            ret,
+            visit(ctx->block()->statementList()).as<std::vector<AST::MutNodePtr>>());
+    return node;
+}

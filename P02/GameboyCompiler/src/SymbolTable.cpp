@@ -35,4 +35,8 @@ DeclType FunctionDeclaration::getType() {
     return DeclType::Function;
 }
 
+FunctionDeclaration::FunctionDeclaration(const SourceLocation &loc) : Declaration(loc) {}
+
+FunctionDeclaration::FunctionDeclaration() {}
+
 Declaration::Declaration(const SourceLocation &loc) : loc(loc) {}

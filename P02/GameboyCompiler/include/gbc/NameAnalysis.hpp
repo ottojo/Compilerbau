@@ -13,6 +13,8 @@
 #include <gbc/SymbolTable.hpp>
 #include <gbc/CompilerError.hpp>
 
+// TODO: Global symbol table, and then for each function? How do we track local vars?
+
 class NameError : public CompilerError {
     public:
         NameError(const std::string &m, const SourceLocation &loc);
@@ -20,12 +22,12 @@ class NameError : public CompilerError {
 
 class NameAnalysis {
     public:
-        static std::shared_ptr<SymbolTable> annotateAST(AST &ast);
+        static void annotateAST(AST &ast);
 
     private:
-        static void annotateNode(SymbolTable &st, const AST::MutNodePtr &node);
-
         static void annotateNode(SymbolTable &st, VariableDeclarationNode &node);
+
+        static void annotateNode(SymbolTable &st, IntegerConstantNode &node);
 
         static void annotateNode(SymbolTable &st, VariableAccessNode &node);
 
@@ -34,6 +36,8 @@ class NameAnalysis {
         static void annotateNode(SymbolTable &st, MethodCallNode &node);
 
         static void annotateNode(SymbolTable &st, ArithmeticExpressionNode &node);
+
+        static void annotateNode(SymbolTable &st, MethodDefinitionNode &node);
 
         static void prefillSymbolTable(SymbolTable &table);
 };

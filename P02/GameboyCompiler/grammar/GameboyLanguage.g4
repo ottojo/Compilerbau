@@ -3,7 +3,7 @@ grammar GameboyLanguage;
 program: statementList EOF;
 statementList: (statement? ('\n' | ';' | ';\n'))*;
 // Statement: Does not have any return value, can be executed
-statement: expression | assignment | varInitialization | funcDeclaration | builtinFuncDeclaration;
+statement: expression | assignment | varInitialization | funcDeclaration | builtinFuncDeclaration | returnStatement;
 
 varDeclaration: typeName=ID variableName=ID;
 varInitialization: varDeclaration EQ rhs=expression;
@@ -15,6 +15,8 @@ funcDeclaration: 'func' funcSignature block;
 builtinFuncDeclaration: 'builtin' 'func' funcSignature;
 
 block: LBRACE statementList RBRACE;
+
+returnStatement: 'return' rhs=expression;
 
 
 // Expression: Can be evaluated to a result with type and value (can be empty/void)

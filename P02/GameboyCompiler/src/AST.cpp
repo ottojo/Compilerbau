@@ -9,7 +9,7 @@
 
 #include <utility>
 
-ASTNodeType ArithmeticExpressionNode::getType() {
+ASTNodeType ArithmeticExpressionNode::getType() const {
     return ASTNodeType::ArithmeticExpression;
 }
 
@@ -22,7 +22,7 @@ ArithmeticExpressionNode::ArithmeticExpressionNode(const SourceLocation &loc, Ar
         rhs(std::move(rhs)) {}
 
 
-ASTNodeType MethodCallNode::getType() {
+ASTNodeType MethodCallNode::getType() const {
     return ASTNodeType::MethodCall;
 }
 
@@ -31,7 +31,7 @@ MethodCallNode::MethodCallNode(const SourceLocation &loc, std::string name, std:
         name(std::move(name)),
         argumentList(std::move(args)) {}
 
-ASTNodeType VariableDeclarationNode::getType() {
+ASTNodeType VariableDeclarationNode::getType() const {
     return ASTNodeType::VariableDeclaration;
 }
 
@@ -42,7 +42,7 @@ VariableDeclarationNode::VariableDeclarationNode(const SourceLocation &loc, std:
         name(std::move(name)),
         rhs(std::move(rhs)) {}
 
-ASTNodeType VariableAssignmentNode::getType() {
+ASTNodeType VariableAssignmentNode::getType() const {
     return ASTNodeType::VariableAssignment;
 }
 
@@ -51,14 +51,14 @@ VariableAssignmentNode::VariableAssignmentNode(const SourceLocation &loc, std::s
         name(std::move(name)),
         rhs(std::move(rhs)) {}
 
-ASTNodeType IntegerConstantNode::getType() {
+ASTNodeType IntegerConstantNode::getType() const {
     return ASTNodeType::Constant;
 }
 
 IntegerConstantNode::IntegerConstantNode(const SourceLocation &loc, int val) :
         ASTNode(loc), value(val) {}
 
-ASTNodeType VariableAccessNode::getType() {
+ASTNodeType VariableAccessNode::getType() const {
     return ASTNodeType::VariableAccess;
 }
 
@@ -67,3 +67,18 @@ VariableAccessNode::VariableAccessNode(const SourceLocation &loc, std::string na
         name(std::move(name)) {}
 
 ASTNode::ASTNode(SourceLocation loc) : loc(std::move(loc)) {}
+
+ASTNodeType MethodDefinitionNode::getType() const {
+    return ASTNodeType::MethodDefinition;
+}
+
+MethodDefinitionNode::MethodDefinitionNode(const SourceLocation &loc, std::string name,
+                                           std::vector<MethodArgument> arguments,
+                                           std::optional<std::string> returnTypeName,
+                                           std::vector<AST::MutNodePtr> methodBody) :
+        ASTNode(loc),
+        name(std::move(name)),
+        arguments(std::move(arguments)),
+        returnTypeName(std::move(returnTypeName)),
+        methodBody(std::move(methodBody)) {}
+

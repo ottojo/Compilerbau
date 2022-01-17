@@ -1,6 +1,7 @@
 #include <antlr4-runtime.h>
 #include "GameboyLanguageLexer.h"
 #include "GameboyLanguageParser.h"
+#include "gbc/TypeAnalysis.hpp"
 #include <gbc/ASTGenerationVisitor.hpp>
 #include <gbc/CodeGenerator.hpp>
 #include <gbc/NameAnalysis.hpp>
@@ -16,10 +17,12 @@ int main() {
     ASTGenerationVisitor visitor;
     AST ast = visitor.generateAST(parser.program());
 
-    auto symbolTable = NameAnalysis::annotateAST(ast);
+
+    NameAnalysis::annotateAST(ast);
+    TypeAnalysis::analyzeTypes(ast);
 
     AssemblyOutput output("out.asm");
-    CodeGenerator(output, ast, *symbolTable).generateAssembly();
+    CodeGenerator(output, ast).generateAssembly();
 
     return 0;
 }
