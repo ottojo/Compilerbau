@@ -22,11 +22,11 @@ ArithmeticExpressionNode::ArithmeticExpressionNode(const SourceLocation &loc, Ar
         rhs(std::move(rhs)) {}
 
 
-ASTNodeType MethodCallNode::getType() const {
+ASTNodeType FunctionCallNode::getType() const {
     return ASTNodeType::MethodCall;
 }
 
-MethodCallNode::MethodCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args) :
+FunctionCallNode::FunctionCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args) :
         ASTNode(loc),
         name(std::move(name)),
         argumentList(std::move(args)) {}

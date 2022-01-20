@@ -9,21 +9,14 @@
 #include <gbc/ScopeIndent.hpp>
 #include <fmt/ranges.h>
 
+constexpr auto FUNC_PREFIX = "func_";
+constexpr auto GLOBAL_VAR_PREFIX = "global_";
+
 void CodeGenerator::generateAssembly() {
     out.preamble();
     assignGlobals();
-
-    // TODO: generate main
-    // TODO: generate remaining functions
-    initializeGlobalVars();
     generateMain();
     generateFuncs();
-    //generateGlobalFuncs();
-
-    //ast.traverse([this](auto &node) { generateAssembly(node); });
-
-
-    out.finalize();
 }
 
 void CodeGenerator::generateAssembly(const ArithmeticExpressionNode &node) {
@@ -56,7 +49,7 @@ void CodeGenerator::generateAssembly(const ArithmeticExpressionNode &node) {
     }
 }
 
-void CodeGenerator::generateAssembly(const MethodCallNode &node) {
+void CodeGenerator::generateAssembly(const FunctionCallNode &node) {
     out.comment(fmt::format("Function call to {}", node.name));
     ScopeIndent i(out);
     {
@@ -89,16 +82,34 @@ void CodeGenerator::generateAssembly(const VariableDeclarationNode &node) {
         node.rhs->visit([this](auto &node) { generateAssembly(node); });
     }
     // TODO: Local variables
+    if (node.decl->nestingLevel == 0) {
+        throw std::runtime_error{"wtf, a declatation for global " + node.name};
+    }
+
     uint16_t addr = 7;// addressOfGlobal(node.name, *ast.symbolTable);
     {
         out.comment(fmt::format("Initializing {} at address {:#x}", node.name, addr));
         ScopeIndent i2(out);
-        out.pop16ToAddr(Address{.a=addr});
+        out.pop16ToMemory(NumericAddress{.a=addr});
     }
 }
 
-void CodeGenerator::generateAssembly(const VariableAssignmentNode &/*node*/) {
+void CodeGenerator::generateAssembly(const VariableAssignmentNode &node) {
     // TODO throw std::runtime_error{"Code generation for variable assignment not implemented"};
+    out.comment(fmt::format("Assign {}", node.name));
+    ScopeIndent i(out);
+    if (node.decl->nestingLevel == 0) {
+        {
+            out.comment(fmt::format("Evaluate RHS for assignment of {}", node.name));
+            ScopeIndent i2(out);
+            node.rhs->visit([this](auto &node) { generateAssembly(node); });
+        }
+        out.pop16ToMemory(GLOBAL_VAR_PREFIX + node.name);
+    } else {
+        out.comment("Local variable assignment not implemented");
+        fmt::print(stderr, "Local variable assignment not implemented\n");
+    }
+
 }
 
 void CodeGenerator::generateAssembly(const IntegerConstantNode &node) {
@@ -108,37 +119,23 @@ void CodeGenerator::generateAssembly(const IntegerConstantNode &node) {
 }
 
 void CodeGenerator::generateAssembly(const VariableAccessNode &node) {
-
-    // TODO: Local variables
-    uint16_t addr = 7;//    addressOfGlobal(node.name, *ast.symbolTable);
-    out.comment(fmt::format("Reading {} from address {:#x}", node.name, addr));
-    ScopeIndent i(out);
-    out.push16FromAddr(Address{.a=addr});
+    if (node.decl->nestingLevel == 0) {
+        out.comment(fmt::format("Reading global {}", node.name));
+        ScopeIndent i(out);
+        out.push16FromMemory(GLOBAL_VAR_PREFIX + node.name);
+    } else {
+        // TODO: Local variables
+        out.comment("Local variable access not implemented.");
+    }
 }
 
 void CodeGenerator::assignGlobals() {
-    /*
-    int nextFree = 0xC000;
-    constexpr int lastAddress = 0xDFFF;
-    for (auto &[id, s]: ast.symbolTable->stacks) {
-
-        if (s->getType() == DeclType::Variable) {
-            auto addr = nextFree;
-            nextFree += 2;
-            if (nextFree > lastAddress + 1) {
-                throw std::runtime_error{"Too many globals!"};
-            }
-            auto decl = dynamic_cast<VariableDeclaration *>(s.get());
-            decl->address = addr;
-        }
-
+    out.ramSection("Global Variables");
+    for (const auto &g: ast.globalVariableDeclarationNodes) {
+        // TODO (type analysis): Use correct size of type
+        out.defineVariable(GLOBAL_VAR_PREFIX + g->name, 2);
     }
-    */
-}
-
-uint16_t CodeGenerator::addressOfGlobal(const std::string &/*id*/, const SymbolTable &/*symbolTable*/) {
-    //auto varDecl = dynamic_cast<const VariableDeclaration *>(symbolTable.lookup(id).value()->second.get());
-    return 7; // varDecl->address;
+    out.sectionEnd();
 }
 
 CodeGenerator::CodeGenerator(AssemblyOutput &out, const AST &ast) :
@@ -152,7 +149,7 @@ void CodeGenerator::generateAssembly(const FunctionDefinitionNode &node) {
     }
     out.comment(fmt::format("{}({}) -> {}", node.name, fmt::join(node.arguments, ", "),
                             node.returnTypeName.value_or("<void>")));
-    out.sectionWithLabel("_func_" + node.name);
+    out.sectionWithLabel(FUNC_PREFIX + node.name);
 
     for (const auto &stmt: node.methodBody) {
         stmt->visit([this](auto &node) { generateAssembly(node); });
@@ -167,7 +164,13 @@ void CodeGenerator::generateMain() {
     {
         ScopeIndent s{out};
         initializeGlobalVars();
+        // FunctionCallNode mainCall(SourceLocation(), "main", {});
+        // mainCall.builtinMethod = false;
+        // generateAssembly(mainCall);
+        out.call(FUNC_PREFIX + std::string("main"));
     }
+
+    out.ret();
     out.sectionEnd();
 }
 
@@ -177,6 +180,7 @@ void CodeGenerator::initializeGlobalVars() {
     // Only generate assignment of initial value
     for (const auto &v: ast.globalVariableDeclarationNodes) {
         VariableAssignmentNode init(v->loc, v->name, v->rhs);
+        init.decl = v->decl;
         generateAssembly(init);
     }
 }

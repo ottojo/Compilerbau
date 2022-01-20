@@ -25,12 +25,14 @@ void NameAnalysis::annotateAST(AST &ast) {
 
 void NameAnalysis::annotateNode(SymbolTable &st, VariableDeclarationNode &node) {
     node.rhs->visit([&st](auto &node) { annotateNode(st, node); });
-    if (not st.enter(node.name, std::make_shared<VariableDeclaration>(node.loc))) {
+    auto decl = std::make_shared<VariableDeclaration>(node.loc);
+    if (not st.enter(node.name, decl)) {
         // Entry failed, name already used
         auto prev = st.lookup(node.name);
         throw NameError(fmt::format("Tried to declare previously declared variable \"{}\"! Previous declaration at {}",
                                     node.name, prev->loc.value_or(SourceLocation())), node.loc);
     }
+    node.decl = decl;
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, VariableAccessNode &node) {
@@ -42,7 +44,8 @@ void NameAnalysis::annotateNode(SymbolTable &st, VariableAccessNode &node) {
         throw NameError(fmt::format("\"{}\" (declared at {}) is not a variable!", node.name,
                                     res->loc.value_or(SourceLocation())), node.loc);
     }
-    //node.varDecl = *res;
+    node.decl = std::dynamic_pointer_cast<VariableDeclaration>(res);
+    assert(node.decl != nullptr);
 }
 
 void NameAnalysis::annotateNode(SymbolTable &st, VariableAssignmentNode &node) {
@@ -55,10 +58,11 @@ void NameAnalysis::annotateNode(SymbolTable &st, VariableAssignmentNode &node) {
         throw NameError(fmt::format("\"{}\" (declared at {}) is not a variable!", node.name,
                                     res->loc.value_or(SourceLocation())), node.loc);
     }
-    //node.varDecl = *res;
+    node.decl = std::dynamic_pointer_cast<VariableDeclaration>(res);
+    assert(node.decl != nullptr);
 }
 
-void NameAnalysis::annotateNode(SymbolTable &st, MethodCallNode &node) {
+void NameAnalysis::annotateNode(SymbolTable &st, FunctionCallNode &node) {
     for (auto &n: node.argumentList) {
         n->visit([&st](auto &node) { annotateNode(st, node); });
     }

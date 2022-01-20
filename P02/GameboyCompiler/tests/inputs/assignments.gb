@@ -1,21 +1,15 @@
 builtin func printWord(int16 w)
 
-int16 g = 7;
+int16 g = 1024;
 
-func add(int16 la, int16 lb) -> int16 {
-    int16 lc = la + lb;
-    //int16 ld = ln;
-   // int16 lc = 7;
-    int16 g = 7;
-    return lc;
-}
-
-//printWord(add3(1, 2, 3))
+//func add(int16 la, int16 lb) -> int16 {
+//    int16 lc = la + lb;
+//    return lc;
+//}
 
 func main() {
-    int16 g = 2
-    int16 a = 1;
-    int16 b = 2;
-    int16 c = add(a, b);
-    //printWord(c + global_d);
+   // int16 a = 1;
+   // int16 b = 2;
+   // int16 c = add(a, b);
+    printWord(g);
 }

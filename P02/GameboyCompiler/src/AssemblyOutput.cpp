@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 #include <gbc/AssemblyOutput.hpp>
+#include <cassert>
 
 AssemblyOutput::AssemblyOutput(const std::string &filename) : outputFile(std::fopen(filename.c_str(), "w")) {
     if (!outputFile) {
@@ -61,16 +62,20 @@ void AssemblyOutput::preamble() {
     print(".include \"../framework.asm\"\n");
 }
 
-void AssemblyOutput::finalize() {
-    print("ret\n");
-    print(".ends\n");
-}
-
-void AssemblyOutput::pop16ToAddr(Address a) {
-    comment(fmt::format("*{:#x} <- stack", a.a));
-    pop16BitReg(Reg16::BC);
-    ldReg(Reg::A, Reg::B);
-    load16BitConst(Reg16::HL, a.a);
+void AssemblyOutput::pop16ToMemory(Address a) {
+    if (std::holds_alternative<NumericAddress>(a)) {
+        comment(fmt::format("*{:#x} <- stack", std::get<NumericAddress>(a).a));
+        pop16BitReg(Reg16::BC);
+        ldReg(Reg::A, Reg::B);
+        load16BitConst(Reg16::HL, std::get<NumericAddress>(a).a);
+    } else if (std::holds_alternative<std::string>(a)) {
+        comment(fmt::format("{} <- stack", std::get<std::string>(a)));
+        pop16BitReg(Reg16::BC);
+        ldReg(Reg::A, Reg::B);
+        loadAddressLabel(Reg16::HL, get<std::string>(a));
+    } else {
+        throw std::runtime_error{"implement the new addressing format!!!"};
+    }
     print(fmt::format("LDI (HL), A\n"));
     ldReg(Reg::A, Reg::C);
     print(fmt::format("LDI (HL), A\n"));
@@ -80,12 +85,19 @@ void AssemblyOutput::ldReg(Reg target, Reg src) {
     print(fmt::format("LD {}, {}; {} <- {}\n", target, src, target, src));
 }
 
-void AssemblyOutput::push16FromAddr(Address a) {
-    comment(fmt::format("stack <- *{:#x}", a.a));
-    load16BitConst(Reg16::HL, a.a);
-    print(fmt::format("LDI A, (HL)\n"));
+void AssemblyOutput::push16FromMemory(Address a) {
+    if (std::holds_alternative<NumericAddress>(a)) {
+        comment(fmt::format("stack <- *{:#x}", get<NumericAddress>(a).a));
+        load16BitConst(Reg16::HL, get<NumericAddress>(a).a);
+    } else if (std::holds_alternative<std::string>(a)) {
+        comment(fmt::format("stack <- {}", get<std::string>(a)));
+        loadAddressLabel(Reg16::HL, get<std::string>(a));
+    } else {
+        assert(false);
+    }
+    print(fmt::format("LDI A, (HL); A = *HL; HL++\n"));
     ldReg(Reg::B, Reg::A);
-    print(fmt::format("LDI A, (HL)\n"));
+    print(fmt::format("LDI A, (HL); A = *HL; HL++\n"));
     ldReg(Reg::C, Reg::A);
     push16BitReg(Reg16::BC);
 }
@@ -109,6 +121,23 @@ void AssemblyOutput::sectionWithLabel(const std::string &name) {
 
 void AssemblyOutput::sectionEnd() {
     print(".ends\n");
+}
+
+void AssemblyOutput::ramSection(const std::string &name) {
+    print(fmt::format(".ramsection \"{}\" slot 1\n", name));
+}
+
+void AssemblyOutput::defineVariable(const std::string &name, int size_bytes) {
+    print(fmt::format("{} dsb {}; Variable \"{}\" size {}B\n", name, size_bytes, name, size_bytes));
+}
+
+void AssemblyOutput::loadAddressLabel(Reg16 target, const std::string &name) {
+    print(fmt::format("LD {}, {}; {} <- &{}\n", target, name, target, name));
+
+}
+
+void AssemblyOutput::ret() {
+    print("ret\n");
 }
 
 

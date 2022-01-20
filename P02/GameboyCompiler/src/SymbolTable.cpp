@@ -20,6 +20,7 @@ bool SymbolTable::enter(const std::string &id, const std::shared_ptr<Declaration
         nextStack = verticalEntry->second;
     }
 
+    decl->nestingLevel = currNl;
     DE de{.name=id, .decl=decl, .nextStackAtSameNL = nextStack};
     stacks[id].push(de);
     // Append this element to list of current NL

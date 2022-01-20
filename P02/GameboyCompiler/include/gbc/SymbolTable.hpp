@@ -29,6 +29,8 @@ class Declaration {
         virtual ~Declaration() = default;
 
         std::optional<SourceLocation> loc = std::nullopt;
+
+        std::size_t nestingLevel = 0;
 };
 
 class VariableDeclaration : public Declaration {
@@ -40,7 +42,7 @@ class VariableDeclaration : public Declaration {
 
         ~VariableDeclaration() override = default;
 
-        int address;
+//        int address;
 };
 
 class FunctionDeclaration : public Declaration {
@@ -87,7 +89,7 @@ class SymbolTable {
         [[nodiscard]] std::shared_ptr<Declaration> lookup(const std::string &id) const;
 
         // TODO: Function declarations
-        bool enter(const std::string &id, const std::shared_ptr< Declaration>& decl);
+        bool enter(const std::string &id, const std::shared_ptr<Declaration> &decl);
 
         std::size_t currNl = 0; ///< Current nesting level
         MapType stacks;

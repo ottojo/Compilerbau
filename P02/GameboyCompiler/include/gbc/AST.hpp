@@ -118,15 +118,15 @@ class FunctionDefinitionNode {
         bool builtin = false;
 };
 
-class MethodCallNode :
+class FunctionCallNode :
         public ASTNode {
     public:
-        MethodCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args);
+        FunctionCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args);
 
         [[nodiscard]] ASTNodeType getType() const override;
 
 
-        ~MethodCallNode() override = default;
+        ~FunctionCallNode() override = default;
 
         std::string name;
         SymbolTable::ConstIterator methodDecl;
@@ -142,12 +142,11 @@ class VariableDeclarationNode :
 
         [[nodiscard]] ASTNodeType getType() const override;
 
-
         ~VariableDeclarationNode() override = default;
 
         std::string type;
         std::string name;
-        SymbolTable::ConstIterator declEntry;
+        std::shared_ptr<VariableDeclaration> decl;
         AST::MutNodePtr rhs;
 };
 
@@ -161,8 +160,8 @@ class VariableAssignmentNode :
         ~VariableAssignmentNode() override = default;
 
         std::string name;
-        SymbolTable::ConstIterator varDecl;
         AST::MutNodePtr rhs;
+        std::shared_ptr<VariableDeclaration> decl;
 };
 
 class IntegerConstantNode :
@@ -188,6 +187,7 @@ class VariableAccessNode :
 
         //SymbolTable::ConstIterator varDecl;
         std::string name;
+        std::shared_ptr<VariableDeclaration> decl;
 };
 
 template<typename GenericVisitorLambda>
@@ -195,7 +195,7 @@ void ASTNode::visit(GenericVisitorLambda visitor) {
     using enum ASTNodeType;
     switch (getType()) {
         case MethodCall:
-            visitor(*dynamic_cast<MethodCallNode *>(this));
+            visitor(*dynamic_cast<FunctionCallNode *>(this));
             break;
         case VariableDeclaration:
             visitor(*dynamic_cast<VariableDeclarationNode *>(this));

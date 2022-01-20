@@ -33,7 +33,7 @@ class NameAnalysis {
 
         static void annotateNode(SymbolTable &st, VariableAssignmentNode &node);
 
-        static void annotateNode(SymbolTable &st, MethodCallNode &node);
+        static void annotateNode(SymbolTable &st, FunctionCallNode &node);
 
         static void annotateNode(SymbolTable &st, ArithmeticExpressionNode &node);
 

@@ -13,10 +13,13 @@
 #include <string>
 #include <fmt/format.h>
 #include <gbc/Reg.hpp>
+#include <variant>
 
-struct Address {
+struct NumericAddress {
     uint16_t a;
 };
+
+using Address = std::variant<NumericAddress, std::string>;
 
 
 class AssemblyOutput {
@@ -25,8 +28,6 @@ class AssemblyOutput {
         explicit AssemblyOutput(const std::string &filename);
 
         void preamble();
-
-        void finalize();
 
         void comment(const std::string &comment);
 
@@ -43,9 +44,9 @@ class AssemblyOutput {
 
         void ldReg(Reg target, Reg src);
 
-        void pop16ToAddr(Address a);
+        void pop16ToMemory(Address a);
 
-        void push16FromAddr(Address a);
+        void push16FromMemory(Address a);
 
         //void
 
@@ -64,11 +65,17 @@ class AssemblyOutput {
 
         void sectionWithLabel(const std::string &name);
 
+        void ramSection(const std::string &name);
+
+        void defineVariable(const std::string &name, int size_bytes);
+
         void sectionEnd();
 
         void indent();
 
         void unindent();
+
+        void ret();
 
     private:
 
@@ -82,6 +89,8 @@ class AssemblyOutput {
          * HL += reg
          */
         void add16HL(Reg16 reg);
+
+        void loadAddressLabel(Reg16 target, const std::string &name);
 };
 
 #endif //GAMEBOYCOMPILER_ASSEMBLYOUTPUT_HPP

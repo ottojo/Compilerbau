@@ -105,7 +105,7 @@ antlrcpp::Any ASTGenerationVisitor::visitLiteral(gbparser::GameboyLanguageParser
 }
 
 antlrcpp::Any ASTGenerationVisitor::visitCall(gbparser::GameboyLanguageParser::CallContext *ctx) {
-    AST::MutNodePtr node = std::make_shared<MethodCallNode>(
+    AST::MutNodePtr node = std::make_shared<FunctionCallNode>(
             SourceLocation(ctx->getStart()),
             ctx->functionName->getText(),
             ctx->parameterList() ? visitParameterList(ctx->parameterList()).as<std::vector<AST::MutNodePtr>>()
