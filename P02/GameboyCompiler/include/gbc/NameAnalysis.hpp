@@ -13,7 +13,7 @@
 #include <gbc/SymbolTable.hpp>
 #include <gbc/CompilerError.hpp>
 
-// TODO: Global symbol table, and then for each function? How do we track local vars?
+// TODO: Global symbol stacks, and then for each function? How do we track local vars?
 
 class NameError : public CompilerError {
     public:
@@ -37,7 +37,7 @@ class NameAnalysis {
 
         static void annotateNode(SymbolTable &st, ArithmeticExpressionNode &node);
 
-        static void annotateNode(SymbolTable &st, MethodDefinitionNode &node);
+        static void annotateNode(SymbolTable &st, FunctionDefinitionNode &node);
 
         static void prefillSymbolTable(SymbolTable &table);
 };

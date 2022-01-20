@@ -36,11 +36,11 @@ set(SOURCES
         src/ScopeIndent.cpp
         src/CompilerError.cpp
         src/TypeTable.cpp
-        src/TypeAnalysis.cpp src/TypeAnalysis.hpp)
+        src/TypeAnalysis.cpp)
 
 add_library(gbc ${SOURCES})
 target_link_libraries(gbc PRIVATE fmt::fmt PUBLIC antlr4_static)
-target_include_directories(gbc PRIVATE src PUBLIC include ${ANTLR4_INCLUDE_DIR}  ${ANTLR4_INCLUDE_DIR_${GENERATED_PARSER_NAME}})
+target_include_directories(gbc PRIVATE src PUBLIC include ${ANTLR4_INCLUDE_DIR} ${ANTLR4_INCLUDE_DIR_${GENERATED_PARSER_NAME}})
 
 add_executable(GameboyCompiler src/main.cpp)
 target_link_libraries(GameboyCompiler PUBLIC gbc)

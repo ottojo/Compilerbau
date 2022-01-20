@@ -68,17 +68,11 @@ VariableAccessNode::VariableAccessNode(const SourceLocation &loc, std::string na
 
 ASTNode::ASTNode(SourceLocation loc) : loc(std::move(loc)) {}
 
-ASTNodeType MethodDefinitionNode::getType() const {
-    return ASTNodeType::MethodDefinition;
-}
-
-MethodDefinitionNode::MethodDefinitionNode(const SourceLocation &loc, std::string name,
-                                           std::vector<MethodArgument> arguments,
-                                           std::optional<std::string> returnTypeName,
-                                           std::vector<AST::MutNodePtr> methodBody) :
-        ASTNode(loc),
+FunctionDefinitionNode::FunctionDefinitionNode(SourceLocation loc, std::string name,
+                                               std::vector<MethodArgument> arguments,
+                                               std::optional<std::string> returnTypeName) :
+        loc(std::move(loc)),
         name(std::move(name)),
         arguments(std::move(arguments)),
-        returnTypeName(std::move(returnTypeName)),
-        methodBody(std::move(methodBody)) {}
+        returnTypeName(std::move(returnTypeName)) {}
 

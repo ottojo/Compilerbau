@@ -6,11 +6,27 @@
 #include <gbc/ASTGenerationVisitor.hpp>
 #include <gbc/CompilerError.hpp>
 
+AST ASTGenerationVisitor::generateAST(gbparser::GameboyLanguageParser::ProgramContext *ctx) {
+    visitProgram(ctx);
+    return std::move(ast);
+}
 
 antlrcpp::Any ASTGenerationVisitor::visitProgram(gbparser::GameboyLanguageParser::ProgramContext *ctx) {
-    AST ast;
-    ast.nodes = visitStatementList(ctx->statementList()).as<std::vector<AST::MutNodePtr>>();
-    return ast;
+    for (const auto &globalDeclContext: ctx->globalVarInitialization()) {
+        auto varDecl = visit(globalDeclContext).as<AST::MutNodePtr>();
+        auto declNodePtr = std::dynamic_pointer_cast<VariableDeclarationNode>(varDecl);
+        if (declNodePtr == nullptr) {
+            throw std::runtime_error{""};
+        }
+        ast.globalVariableDeclarationNodes.emplace_back(declNodePtr);
+    }
+    for (const auto &globalDeclContext: ctx->builtinFuncDeclaration()) {
+        ast.functionDefinitionNodes.emplace_back(visit(globalDeclContext).as<FunctionDefPtr>());
+    }
+    for (const auto &globalDeclContext: ctx->funcDefinition()) {
+        ast.functionDefinitionNodes.emplace_back(visit(globalDeclContext).as<FunctionDefPtr>());
+    }
+    return {};
 }
 
 antlrcpp::Any ASTGenerationVisitor::visitStatementList(gbparser::GameboyLanguageParser::StatementListContext *ctx) {
@@ -116,11 +132,6 @@ ASTGenerationVisitor::visitVarInitialization(gbparser::GameboyLanguageParser::Va
     return node;
 }
 
-AST ASTGenerationVisitor::generateAST(gbparser::GameboyLanguageParser::ProgramContext *ctx) {
-    auto ast = visitProgram(ctx);
-    return std::move(ast.as<AST>());
-}
-
 antlrcpp::Any ASTGenerationVisitor::visitFuncDeclaration(gbparser::GameboyLanguageParser::FuncDeclarationContext *ctx) {
     std::vector<MethodArgument> args;
     for (const auto &a: ctx->funcSignature()->argumentList()->varDeclaration()) {
@@ -132,11 +143,31 @@ antlrcpp::Any ASTGenerationVisitor::visitFuncDeclaration(gbparser::GameboyLangua
         ret = ctx->funcSignature()->returnType->getText();
     }
 
-    AST::MutNodePtr node = std::make_shared<MethodDefinitionNode>(
+    FunctionDefPtr node = std::make_shared<FunctionDefinitionNode>(
             SourceLocation(ctx->getStart()),
             ctx->funcSignature()->funcName->getText(),
             args,
-            ret,
-            visit(ctx->block()->statementList()).as<std::vector<AST::MutNodePtr>>());
+            ret);
     return node;
+}
+
+antlrcpp::Any ASTGenerationVisitor::visitGlobalVarInitialization(gbparser::GameboyLanguageParser::GlobalVarInitializationContext *ctx) {
+    return GameboyLanguageBaseVisitor::visitGlobalVarInitialization(ctx);
+}
+
+antlrcpp::Any ASTGenerationVisitor::visitBuiltinFuncDeclaration(gbparser::GameboyLanguageParser::BuiltinFuncDeclarationContext *ctx) {
+    auto def = visit(ctx->funcDeclaration()).as<FunctionDefPtr>();
+    def->builtin = true;
+    return def;
+}
+
+antlrcpp::Any ASTGenerationVisitor::visitFuncDefinition(gbparser::GameboyLanguageParser::FuncDefinitionContext *ctx) {
+    auto def = visit(ctx->funcDeclaration()).as<FunctionDefPtr>();
+    def->methodBody = visit(ctx->block()->statementList()).as<std::vector<AST::MutNodePtr>>();
+    def->builtin = false;
+    return def;
+}
+
+antlrcpp::Any ASTGenerationVisitor::visitFuncSignature(gbparser::GameboyLanguageParser::FuncSignatureContext *ctx) {
+    return GameboyLanguageBaseVisitor::visitFuncSignature(ctx);
 }

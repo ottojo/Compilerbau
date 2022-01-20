@@ -59,8 +59,6 @@ void AssemblyOutput::comment(const std::string &comment) {
 
 void AssemblyOutput::preamble() {
     print(".include \"../framework.asm\"\n");
-    print(".section \"main\"\n");
-    print("main:\n");
 }
 
 void AssemblyOutput::finalize() {

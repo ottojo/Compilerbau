@@ -25,7 +25,7 @@ class CodeGenerator {
         AssemblyOutput &out;
         const AST &ast;
 
-        int ind = 0;
+        // int ind = 0;
 
         void generateAssembly(const ArithmeticExpressionNode &node);
 
@@ -39,11 +39,17 @@ class CodeGenerator {
 
         void generateAssembly(const VariableAccessNode &node);
 
-        void generateAssembly(const MethodDefinitionNode &node);
+        void generateAssembly(const FunctionDefinitionNode &node);
 
         void assignGlobals();
 
         static uint16_t addressOfGlobal(const std::string &id, const SymbolTable &symbolTable);
+
+    void generateMain();
+
+        void initializeGlobalVars();
+
+        void generateFuncs();
 };
 
 

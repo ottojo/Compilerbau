@@ -43,14 +43,24 @@ class ASTNode {
         void visit(GenericVisitorLambda visitor);
 };
 
+class FunctionDefinitionNode;
+
+using FunctionDefPtr = std::shared_ptr<FunctionDefinitionNode>;
+
+class VariableDeclarationNode;
+
+using VariableDeclNodePtr = std::shared_ptr<VariableDeclarationNode>;
+
 class AST {
     public:
         using MutNodePtr = std::shared_ptr<ASTNode>;
 
+        // TODO: Gehören die hier rein?
         std::unique_ptr<TypeTable> typeTable;
-
         std::unique_ptr<SymbolTable> symbolTable;
-        std::vector<MutNodePtr> nodes;
+
+        std::vector<std::shared_ptr<FunctionDefinitionNode>> functionDefinitionNodes;
+        std::vector<VariableDeclNodePtr> globalVariableDeclarationNodes;
 
         /**
          * Visit all top-level nodes (does not visit children automatically!)
@@ -62,7 +72,8 @@ class AST {
 
 };
 
-class ArithmeticExpressionNode : public ASTNode {
+class ArithmeticExpressionNode :
+        public ASTNode {
     public:
         enum class Operation {
             PLUS, MINUS, DIV, MULT, XOR
@@ -93,24 +104,22 @@ struct fmt::formatter<MethodArgument> : formatter<std::string_view> {
 };
 
 
-class MethodDefinitionNode : public ASTNode {
+class FunctionDefinitionNode {
     public:
-        MethodDefinitionNode(const SourceLocation &loc, std::string name,
-                             std::vector<MethodArgument> arguments,
-                             std::optional<std::string> returnTypeName,
-                             std::vector<AST::MutNodePtr> methodBody);
+        FunctionDefinitionNode(SourceLocation loc, std::string name,
+                               std::vector<MethodArgument> arguments,
+                               std::optional<std::string> returnTypeName);
 
-        [[nodiscard]] ASTNodeType getType() const override;
-
-        ~MethodDefinitionNode() override = default;
-
+        SourceLocation loc;
         std::string name;
         std::vector<MethodArgument> arguments;
         std::optional<std::string> returnTypeName;
         std::vector<AST::MutNodePtr> methodBody;
+        bool builtin = false;
 };
 
-class MethodCallNode : public ASTNode {
+class MethodCallNode :
+        public ASTNode {
     public:
         MethodCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args);
 
@@ -126,7 +135,8 @@ class MethodCallNode : public ASTNode {
         bool builtinMethod = true; // Use register calling convention from framework
 };
 
-class VariableDeclarationNode : public ASTNode {
+class VariableDeclarationNode :
+        public ASTNode {
     public:
         VariableDeclarationNode(const SourceLocation &loc, std::string type, std::string name, AST::MutNodePtr rhs);
 
@@ -141,7 +151,8 @@ class VariableDeclarationNode : public ASTNode {
         AST::MutNodePtr rhs;
 };
 
-class VariableAssignmentNode : public ASTNode {
+class VariableAssignmentNode :
+        public ASTNode {
     public:
         VariableAssignmentNode(const SourceLocation &loc, std::string name, AST::MutNodePtr rhs);
 
@@ -154,7 +165,8 @@ class VariableAssignmentNode : public ASTNode {
         AST::MutNodePtr rhs;
 };
 
-class IntegerConstantNode : public ASTNode {
+class IntegerConstantNode :
+        public ASTNode {
     public:
         explicit IntegerConstantNode(const SourceLocation &loc, int val);
 
@@ -165,7 +177,8 @@ class IntegerConstantNode : public ASTNode {
         int value = 0;
 };
 
-class VariableAccessNode : public ASTNode {
+class VariableAccessNode :
+        public ASTNode {
     public:
         explicit VariableAccessNode(const SourceLocation &loc, std::string name);
 
@@ -173,7 +186,7 @@ class VariableAccessNode : public ASTNode {
 
         ~VariableAccessNode() override = default;
 
-        SymbolTable::ConstIterator varDecl;
+        //SymbolTable::ConstIterator varDecl;
         std::string name;
 };
 
@@ -200,15 +213,18 @@ void ASTNode::visit(GenericVisitorLambda visitor) {
             visitor(*dynamic_cast<IntegerConstantNode *>(this));
             break;
         case MethodDefinition:
-            visitor(*dynamic_cast<MethodDefinitionNode *>(this));
+            visitor(*dynamic_cast<FunctionDefinitionNode *>(this));
             break;
     }
 }
 
 template<typename GenericVisitorLambda>
 void AST::traverse(GenericVisitorLambda visitor) const {
-    for (auto &node: nodes) {
-        node->visit(visitor);
+    for (auto &node: this->functionDefinitionNodes) {
+        visitor(*node);
+    }
+    for (auto &node: this->globalVariableDeclarationNodes) {
+        visitor(*node);
     }
 }
 

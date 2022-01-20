@@ -12,7 +12,17 @@
 void CodeGenerator::generateAssembly() {
     out.preamble();
     assignGlobals();
-    ast.traverse([this](auto &node) { generateAssembly(node); });
+
+    // TODO: generate main
+    // TODO: generate remaining functions
+    initializeGlobalVars();
+    generateMain();
+    generateFuncs();
+    //generateGlobalFuncs();
+
+    //ast.traverse([this](auto &node) { generateAssembly(node); });
+
+
     out.finalize();
 }
 
@@ -78,7 +88,8 @@ void CodeGenerator::generateAssembly(const VariableDeclarationNode &node) {
         ScopeIndent i2(out);
         node.rhs->visit([this](auto &node) { generateAssembly(node); });
     }
-    auto addr = addressOfGlobal(node.name, *ast.symbolTable);
+    // TODO: Local variables
+    uint16_t addr = 7;// addressOfGlobal(node.name, *ast.symbolTable);
     {
         out.comment(fmt::format("Initializing {} at address {:#x}", node.name, addr));
         ScopeIndent i2(out);
@@ -87,7 +98,7 @@ void CodeGenerator::generateAssembly(const VariableDeclarationNode &node) {
 }
 
 void CodeGenerator::generateAssembly(const VariableAssignmentNode &/*node*/) {
-    throw std::runtime_error{"Code generation for variable assignment not implemented"};
+    // TODO throw std::runtime_error{"Code generation for variable assignment not implemented"};
 }
 
 void CodeGenerator::generateAssembly(const IntegerConstantNode &node) {
@@ -98,16 +109,19 @@ void CodeGenerator::generateAssembly(const IntegerConstantNode &node) {
 
 void CodeGenerator::generateAssembly(const VariableAccessNode &node) {
 
-    auto addr = addressOfGlobal(node.name, *ast.symbolTable);
+    // TODO: Local variables
+    uint16_t addr = 7;//    addressOfGlobal(node.name, *ast.symbolTable);
     out.comment(fmt::format("Reading {} from address {:#x}", node.name, addr));
     ScopeIndent i(out);
     out.push16FromAddr(Address{.a=addr});
 }
 
 void CodeGenerator::assignGlobals() {
+    /*
     int nextFree = 0xC000;
     constexpr int lastAddress = 0xDFFF;
-    for (auto &[id, s]: ast.symbolTable->table) {
+    for (auto &[id, s]: ast.symbolTable->stacks) {
+
         if (s->getType() == DeclType::Variable) {
             auto addr = nextFree;
             nextFree += 2;
@@ -117,12 +131,14 @@ void CodeGenerator::assignGlobals() {
             auto decl = dynamic_cast<VariableDeclaration *>(s.get());
             decl->address = addr;
         }
+
     }
+    */
 }
 
-uint16_t CodeGenerator::addressOfGlobal(const std::string &id, const SymbolTable &symbolTable) {
-    auto varDecl = dynamic_cast<const VariableDeclaration *>(symbolTable.lookup(id).value()->second.get());
-    return varDecl->address;
+uint16_t CodeGenerator::addressOfGlobal(const std::string &/*id*/, const SymbolTable &/*symbolTable*/) {
+    //auto varDecl = dynamic_cast<const VariableDeclaration *>(symbolTable.lookup(id).value()->second.get());
+    return 7; // varDecl->address;
 }
 
 CodeGenerator::CodeGenerator(AssemblyOutput &out, const AST &ast) :
@@ -130,8 +146,10 @@ CodeGenerator::CodeGenerator(AssemblyOutput &out, const AST &ast) :
         ast(ast) {}
 
 
-void CodeGenerator::generateAssembly(const MethodDefinitionNode &node) {
-    // TODO: Functions not in main section
+void CodeGenerator::generateAssembly(const FunctionDefinitionNode &node) {
+    if (node.builtin) {
+        return;
+    }
     out.comment(fmt::format("{}({}) -> {}", node.name, fmt::join(node.arguments, ", "),
                             node.returnTypeName.value_or("<void>")));
     out.sectionWithLabel("_func_" + node.name);
@@ -142,5 +160,32 @@ void CodeGenerator::generateAssembly(const MethodDefinitionNode &node) {
 
     out.sectionEnd();
     // TODO
+}
+
+void CodeGenerator::generateMain() {
+    out.sectionWithLabel("main");
+    {
+        ScopeIndent s{out};
+        initializeGlobalVars();
+    }
+    out.sectionEnd();
+}
+
+void CodeGenerator::initializeGlobalVars() {
+    out.comment("--- Global Variables ---");
+    ScopeIndent s(out);
+    // Only generate assignment of initial value
+    for (const auto &v: ast.globalVariableDeclarationNodes) {
+        VariableAssignmentNode init(v->loc, v->name, v->rhs);
+        generateAssembly(init);
+    }
+}
+
+void CodeGenerator::generateFuncs() {
+    out.comment("--- Functions ---");
+    ScopeIndent s(out);
+    for (const auto &v: ast.functionDefinitionNodes) {
+        generateAssembly(*v);
+    }
 }
 

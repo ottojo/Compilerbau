@@ -15,6 +15,16 @@ class ASTGenerationVisitor : public gbparser::GameboyLanguageBaseVisitor {
 
         antlrcpp::Any visitProgram(gbparser::GameboyLanguageParser::ProgramContext *ctx) override;
 
+        antlrcpp::Any visitFuncSignature(gbparser::GameboyLanguageParser::FuncSignatureContext *ctx) override;
+
+        antlrcpp::Any visitFuncDefinition(gbparser::GameboyLanguageParser::FuncDefinitionContext *ctx) override;
+
+        antlrcpp::Any
+        visitBuiltinFuncDeclaration(gbparser::GameboyLanguageParser::BuiltinFuncDeclarationContext *ctx) override;
+
+        antlrcpp::Any
+        visitGlobalVarInitialization(gbparser::GameboyLanguageParser::GlobalVarInitializationContext *ctx) override;
+
         antlrcpp::Any visitVarInitialization(gbparser::GameboyLanguageParser::VarInitializationContext *ctx) override;
 
         antlrcpp::Any visitStatementList(gbparser::GameboyLanguageParser::StatementListContext *ctx) override;
@@ -34,6 +44,9 @@ class ASTGenerationVisitor : public gbparser::GameboyLanguageBaseVisitor {
         antlrcpp::Any visitParameterList(gbparser::GameboyLanguageParser::ParameterListContext *ctx) override;
 
         antlrcpp::Any visitFuncDeclaration(gbparser::GameboyLanguageParser::FuncDeclarationContext *ctx) override;
+
+    private:
+        AST ast;
 };
 
 

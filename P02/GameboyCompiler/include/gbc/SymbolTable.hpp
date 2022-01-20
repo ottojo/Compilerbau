@@ -54,49 +54,50 @@ class FunctionDeclaration : public Declaration {
         ~FunctionDeclaration() override = default;
 };
 
-/*
-struct DE {
-    Declaration decl;
-    DE *nextInNL; ///< "Vertical" connection, to next DE with the same nesting level
-    DE *shadowedDE; ///< Next declaration with same ID in lower nesting level
-};
-*/
+struct DE;
+
 
 class SymbolTable {
-    private:
-        using MapType = std::map<std::string, std::unique_ptr<Declaration>>;
     public:
+        using MapType = std::map<std::string, std::stack<DE> >;
         using ConstIterator = MapType::const_iterator;
 
-        // TODO: Implement nesting
-
-        // void enterScope();
-
-        // void leaveScope();
-
-        // int currentNestingLevel();
+        void enterScope();
 
         /**
-         * Insert a declaration into the symbol table
+         * @return All removed variables
+         */
+        std::vector<DE> leaveScope();
+
+        std::size_t currentNestingLevel() const;
+
+        /**
+         * Insert a declaration into the symbol stacks
          * @param id Identifier
          * @param decl Declaration information
-         * @return True if ID was not already present in table
+         * @return True if ID was not already present in stacks
          */
-        bool enter(const std::string &id, const VariableDeclaration &decl);
+        //bool enter(const std::string &id, const VariableDeclaration &decl);
 
         /**
          * Look up a name and find its declaration
          * @param id Identifier to look up
          * @return Iterator to declaration, if found
          */
-        [[nodiscard]] std::optional<ConstIterator> lookup(const std::string &id) const;
+        [[nodiscard]] std::shared_ptr<Declaration> lookup(const std::string &id) const;
 
         // TODO: Function declarations
-        bool enter(const std::string &id, const FunctionDeclaration &decl);
+        bool enter(const std::string &id, const std::shared_ptr< Declaration>& decl);
 
-        // int currNl = 0; ///< Current nesting level
-        MapType table;
+        std::size_t currNl = 0; ///< Current nesting level
+        MapType stacks;
+        std::map<std::size_t, MapType::iterator> verticalConnections;
 };
 
+struct DE {
+    std::string name;
+    std::shared_ptr<Declaration> decl;
+    SymbolTable::MapType::iterator nextStackAtSameNL; ///< "Vertical" connection, to next DE with the same nesting level
+};
 
 #endif //GAMEBOYCOMPILER_SYMBOLTABLE_HPP

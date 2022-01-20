@@ -9,7 +9,7 @@
 
 void TypeAnalysis::analyzeTypes(AST &ast) {
     if (ast.typeTable != nullptr) {
-        throw std::runtime_error{"AST already has type table!"};
+        throw std::runtime_error{"AST already has type stacks!"};
     }
     ast.typeTable = std::make_unique<TypeTable>();
 
