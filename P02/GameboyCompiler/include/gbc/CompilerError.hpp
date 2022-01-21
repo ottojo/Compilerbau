@@ -2,7 +2,6 @@
  * @file CompilerError.hpp
  * @author ottojo
  * @date 1/12/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_COMPILERERROR_HPP

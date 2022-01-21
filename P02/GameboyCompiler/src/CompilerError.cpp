@@ -2,7 +2,6 @@
  * @file CompilerError.cpp
  * @author ottojo
  * @date 1/12/22
- * Description here TODO
  */
 
 #include <gbc/CompilerError.hpp>

@@ -19,7 +19,7 @@ builtinFuncDeclaration: 'builtin' funcDeclaration;
 
 block: LBRACE statementList RBRACE;
 
-returnStatement: 'return' rhs=expression;
+returnStatement: 'return' (rhs=expression)?;
 
 
 // Expression: Can be evaluated to a result with type and value (can be empty/void)

@@ -2,7 +2,6 @@
  * @file SymbolTable.cpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #include <gbc/SymbolTable.hpp>
@@ -18,6 +17,8 @@ bool SymbolTable::enter(const std::string &id, const std::shared_ptr<Declaration
     auto nextStack = stacks.end();
     if (verticalEntry != verticalConnections.end()) {
         nextStack = verticalEntry->second;
+        assert(not nextStack->second.empty());
+        decl->FPoffset = nextStack->second.top().decl->FPoffset + nextStack->second.top().decl->size;
     }
 
     decl->nestingLevel = currNl;

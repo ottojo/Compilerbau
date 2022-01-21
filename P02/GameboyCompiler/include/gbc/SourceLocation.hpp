@@ -2,7 +2,6 @@
  * @file SourceLocation.hpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_SOURCELOCATION_HPP

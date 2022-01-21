@@ -2,7 +2,6 @@
  * @file NameAnalysis.hpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_NAMEANALYSIS_HPP
@@ -14,6 +13,8 @@
 #include <gbc/CompilerError.hpp>
 
 // TODO: Global symbol stacks, and then for each function? How do we track local vars?
+
+// TODO (name+type analysis): Merge both? -> Can calculate FP offsets directly, no need to traverse again?
 
 class NameError : public CompilerError {
     public:

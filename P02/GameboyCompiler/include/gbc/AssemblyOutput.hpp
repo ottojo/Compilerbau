@@ -2,7 +2,6 @@
  * @file AssemblyOutput.hpp
  * @author ottojo
  * @date 1/8/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_ASSEMBLYOUTPUT_HPP
@@ -44,6 +43,13 @@ class AssemblyOutput {
 
         void ldReg(Reg target, Reg src);
 
+        void ldReg16(Reg16 target, Reg16 src);
+
+        /**
+         * Modifies HL
+         */
+        void saveSPtoFP();
+
         void pop16ToMemory(Address a);
 
         void push16FromMemory(Address a);
@@ -76,6 +82,11 @@ class AssemblyOutput {
         void unindent();
 
         void ret();
+
+        /**
+         * Modifies HL!
+         */
+        void restoreSPfromFP();
 
     private:
 

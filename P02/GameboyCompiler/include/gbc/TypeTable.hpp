@@ -2,7 +2,6 @@
  * @file TypeTable.hpp
  * @author ottojo
  * @date 1/15/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_TYPETABLE_HPP

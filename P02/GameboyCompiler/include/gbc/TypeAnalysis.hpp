@@ -2,7 +2,6 @@
  * @file TypeAnalysis.hpp
  * @author ottojo
  * @date 1/16/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_TYPEANALYSIS_HPP

@@ -2,7 +2,6 @@
  * @file NameAnalysis.cpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #include <gbc/NameAnalysis.hpp>
@@ -26,6 +25,7 @@ void NameAnalysis::annotateAST(AST &ast) {
 void NameAnalysis::annotateNode(SymbolTable &st, VariableDeclarationNode &node) {
     node.rhs->visit([&st](auto &node) { annotateNode(st, node); });
     auto decl = std::make_shared<VariableDeclaration>(node.loc);
+    decl->size = 2; //TODO (type analysis): Enter type
     if (not st.enter(node.name, decl)) {
         // Entry failed, name already used
         auto prev = st.lookup(node.name);
@@ -99,7 +99,10 @@ void NameAnalysis::annotateNode(SymbolTable &st, FunctionDefinitionNode &node) {
     st.enterScope();
 
     for (const auto &arg: node.arguments) {
-        auto entered_arg = st.enter(arg.identifier, std::make_shared<VariableDeclaration>(node.loc));
+        // TODO: Special case of variable declaration (not initialization)?
+        auto decl = std::make_shared<VariableDeclaration>(node.loc);
+        decl->size = 2; // TODO (type analysis): sizes
+        auto entered_arg = st.enter(arg.identifier, decl);
         if (not entered_arg) {
             // Entry failed, name already used
             auto prev = st.lookup(node.name);

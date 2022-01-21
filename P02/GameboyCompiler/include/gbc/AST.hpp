@@ -2,7 +2,6 @@
  * @file AST.hpp
  * @author ottojo
  * @date 1/8/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_AST_HPP
@@ -53,7 +52,9 @@ using VariableDeclNodePtr = std::shared_ptr<VariableDeclarationNode>;
 
 class AST {
     public:
+        // TODO: Optional/(not)nullable pointer types
         using MutNodePtr = std::shared_ptr<ASTNode>;
+        using OptMutNodePtr = MutNodePtr;
 
         // TODO: Gehören die hier rein?
         std::unique_ptr<TypeTable> typeTable;
@@ -118,8 +119,7 @@ class FunctionDefinitionNode {
         bool builtin = false;
 };
 
-class FunctionCallNode :
-        public ASTNode {
+class FunctionCallNode : public ASTNode {
     public:
         FunctionCallNode(const SourceLocation &loc, std::string name, std::vector<AST::MutNodePtr> args);
 
@@ -133,6 +133,14 @@ class FunctionCallNode :
         std::vector<AST::MutNodePtr> argumentList;
 
         bool builtinMethod = true; // Use register calling convention from framework
+};
+
+class ReturnNode : public ASTNode {
+    public:
+        ReturnNode(const SourceLocation &loc, AST::OptMutNodePtr rhs);
+
+    private:
+        AST::OptMutNodePtr rhs;
 };
 
 class VariableDeclarationNode :
@@ -150,8 +158,7 @@ class VariableDeclarationNode :
         AST::MutNodePtr rhs;
 };
 
-class VariableAssignmentNode :
-        public ASTNode {
+class VariableAssignmentNode : public ASTNode {
     public:
         VariableAssignmentNode(const SourceLocation &loc, std::string name, AST::MutNodePtr rhs);
 

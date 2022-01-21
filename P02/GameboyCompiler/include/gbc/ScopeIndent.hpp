@@ -2,7 +2,6 @@
  * @file ScopeIndent.hpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_SCOPEINDENT_HPP

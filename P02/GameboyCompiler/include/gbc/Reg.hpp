@@ -2,7 +2,6 @@
  * @file Reg.hpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_REG_HPP
@@ -15,8 +14,11 @@ enum class Reg {
 };
 
 enum class Reg16 {
-    BC, DE, HL
+    BC, DE_FP, HL, FP = DE_FP
 };
+
+Reg lowReg(Reg16 r);
+Reg highReg(Reg16 r);
 
 template<>
 struct fmt::formatter<Reg> : formatter<std::string_view> {
@@ -61,7 +63,7 @@ struct fmt::formatter<Reg16> : formatter<std::string_view> {
             case Reg16::BC:
                 name = "BC";
                 break;
-            case Reg16::DE:
+            case Reg16::DE_FP:
                 name = "DE";
                 break;
             case Reg16::HL:

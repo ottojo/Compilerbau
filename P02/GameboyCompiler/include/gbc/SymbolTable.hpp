@@ -2,7 +2,6 @@
  * @file SymbolTable.hpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #ifndef GAMEBOYCOMPILER_SYMBOLTABLE_HPP
@@ -31,6 +30,10 @@ class Declaration {
         std::optional<SourceLocation> loc = std::nullopt;
 
         std::size_t nestingLevel = 0;
+
+        std::size_t FPoffset = 0;
+
+        std::size_t size = 0; // TODO: reference type
 };
 
 class VariableDeclaration : public Declaration {

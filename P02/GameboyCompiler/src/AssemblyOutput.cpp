@@ -2,7 +2,6 @@
  * @file AssemblyOutput.cpp
  * @author ottojo
  * @date 1/8/22
- * Description here TODO
  */
 
 #include <fmt/format.h>
@@ -82,7 +81,15 @@ void AssemblyOutput::pop16ToMemory(Address a) {
 }
 
 void AssemblyOutput::ldReg(Reg target, Reg src) {
+    if (target == src) {
+        return;
+    }
     print(fmt::format("LD {}, {}; {} <- {}\n", target, src, target, src));
+}
+
+void AssemblyOutput::ldReg16(Reg16 target, Reg16 src) {
+    ldReg(lowReg(target), lowReg(src));
+    ldReg(highReg(target), highReg(src));
 }
 
 void AssemblyOutput::push16FromMemory(Address a) {
@@ -138,6 +145,19 @@ void AssemblyOutput::loadAddressLabel(Reg16 target, const std::string &name) {
 
 void AssemblyOutput::ret() {
     print("ret\n");
+}
+
+void AssemblyOutput::saveSPtoFP() {
+    comment("FP <- SP");
+    print("LD HL, SP+0\n");
+    ldReg16(Reg16::FP, Reg16::HL);
+}
+
+void AssemblyOutput::restoreSPfromFP() {
+    comment("SP <- FP");
+    ldReg16(Reg16::HL, Reg16::FP);
+    print("LD SP, HL\n");
+
 }
 
 

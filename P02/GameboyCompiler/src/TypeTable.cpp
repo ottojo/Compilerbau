@@ -2,7 +2,6 @@
  * @file TypeTable.cpp
  * @author ottojo
  * @date 1/15/22
- * Description here TODO
  */
 
 #include <gbc/TypeTable.hpp>

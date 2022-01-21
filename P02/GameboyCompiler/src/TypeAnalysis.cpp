@@ -2,7 +2,6 @@
  * @file TypeAnalysis.cpp
  * @author ottojo
  * @date 1/16/22
- * Description here TODO
  */
 
 #include <gbc/TypeAnalysis.hpp>

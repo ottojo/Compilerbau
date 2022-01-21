@@ -2,7 +2,6 @@
  * @file CodeGenerator.cpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #include <gbc/CodeGenerator.hpp>
@@ -74,24 +73,15 @@ void CodeGenerator::generateAssembly(const FunctionCallNode &node) {
 }
 
 void CodeGenerator::generateAssembly(const VariableDeclarationNode &node) {
-    out.comment(fmt::format("Initialize {}", node.name));
-    ScopeIndent i(out);
-    {
-        out.comment(fmt::format("Evaluate RHS for initialization of {}", node.name));
-        ScopeIndent i2(out);
-        node.rhs->visit([this](auto &node) { generateAssembly(node); });
-    }
-    // TODO: Local variables
     if (node.decl->nestingLevel == 0) {
-        throw std::runtime_error{"wtf, a declatation for global " + node.name};
+        throw std::runtime_error{"wtf, a declaration for global " + node.name};
     }
-
-    uint16_t addr = 7;// addressOfGlobal(node.name, *ast.symbolTable);
-    {
-        out.comment(fmt::format("Initializing {} at address {:#x}", node.name, addr));
-        ScopeIndent i2(out);
-        out.pop16ToMemory(NumericAddress{.a=addr});
-    }
+    // TODO (local variables): Arguments are offset negative from FP!
+    auto offsetFromFP = node.decl->FPoffset;
+    out.comment(fmt::format("Evaluate RHS for initialization of {} on stack (should be offset {} from FP)", node.name,
+                            offsetFromFP));
+    ScopeIndent i(out);
+    node.rhs->visit([this](auto &node) { generateAssembly(node); });
 }
 
 void CodeGenerator::generateAssembly(const VariableAssignmentNode &node) {
@@ -125,7 +115,10 @@ void CodeGenerator::generateAssembly(const VariableAccessNode &node) {
         out.push16FromMemory(GLOBAL_VAR_PREFIX + node.name);
     } else {
         // TODO: Local variables
-        out.comment("Local variable access not implemented.");
+        auto offsetFromFP = node.decl->FPoffset;
+        out.comment(fmt::format("Reading local {} with offset {} from FP and size {}", node.name, offsetFromFP,
+                                node.decl->size));
+
     }
 }
 
@@ -142,6 +135,8 @@ CodeGenerator::CodeGenerator(AssemblyOutput &out, const AST &ast) :
         out(out),
         ast(ast) {}
 
+// TODO (codegen): generate Return: SP=FP to reset local vars
+// TODO (opt): replace push;pop with ld
 
 void CodeGenerator::generateAssembly(const FunctionDefinitionNode &node) {
     if (node.builtin) {
@@ -150,13 +145,16 @@ void CodeGenerator::generateAssembly(const FunctionDefinitionNode &node) {
     out.comment(fmt::format("{}({}) -> {}", node.name, fmt::join(node.arguments, ", "),
                             node.returnTypeName.value_or("<void>")));
     out.sectionWithLabel(FUNC_PREFIX + node.name);
+    out.comment("Load frame pointer into register");
+    out.saveSPtoFP();
 
     for (const auto &stmt: node.methodBody) {
         stmt->visit([this](auto &node) { generateAssembly(node); });
     }
 
+    out.restoreSPfromFP();
+    out.ret();
     out.sectionEnd();
-    // TODO
 }
 
 void CodeGenerator::generateMain() {

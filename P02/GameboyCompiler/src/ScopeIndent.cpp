@@ -2,8 +2,7 @@
  * @file ScopeIndent.cpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
- */
+dynamic_cast */
 
 #include <gbc/ScopeIndent.hpp>
 

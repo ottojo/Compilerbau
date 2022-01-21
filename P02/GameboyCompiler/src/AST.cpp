@@ -2,7 +2,6 @@
  * @file AST.cpp
  * @author ottojo
  * @date 1/8/22
- * Description here TODO
  */
 
 #include <gbc/AST.hpp>
@@ -76,3 +75,4 @@ FunctionDefinitionNode::FunctionDefinitionNode(SourceLocation loc, std::string n
         arguments(std::move(arguments)),
         returnTypeName(std::move(returnTypeName)) {}
 
+ReturnNode::ReturnNode(const SourceLocation &loc, AST::OptMutNodePtr rhs) : ASTNode(loc), rhs(std::move(rhs)) {}

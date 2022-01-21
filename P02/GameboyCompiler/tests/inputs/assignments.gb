@@ -2,10 +2,10 @@ builtin func printWord(int16 w)
 
 int16 g = 1024;
 
-//func add(int16 la, int16 lb) -> int16 {
-//    int16 lc = la + lb;
-//    return lc;
-//}
+func add(int16 la, int16 lb) -> int16 {
+    int16 lc = la + lb;
+    return lc;
+}
 
 func main() {
    // int16 a = 1;

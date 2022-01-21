@@ -2,7 +2,6 @@
  * @file SourceLocation.cpp
  * @author ottojo
  * @date 1/9/22
- * Description here TODO
  */
 
 #include <gbc/SourceLocation.hpp>
