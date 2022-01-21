@@ -11,7 +11,6 @@
 #include <vector>
 #include <gbc/AssemblyOutput.hpp>
 #include <gbc/SymbolTable.hpp>
-#include "TypeTable.hpp"
 
 enum class ASTNodeType {
     ArithmeticExpression,
@@ -20,7 +19,8 @@ enum class ASTNodeType {
     VariableDeclaration,
     VariableAssignment,
     Constant,
-    VariableAccess
+    VariableAccess,
+    Return
 };
 
 class ASTNode {
@@ -46,9 +46,9 @@ class FunctionDefinitionNode;
 
 using FunctionDefPtr = std::shared_ptr<FunctionDefinitionNode>;
 
-class VariableDeclarationNode;
+class VariableInitializationNode;
 
-using VariableDeclNodePtr = std::shared_ptr<VariableDeclarationNode>;
+using VariableDeclNodePtr = std::shared_ptr<VariableInitializationNode>;
 
 class AST {
     public:
@@ -57,7 +57,6 @@ class AST {
         using OptMutNodePtr = MutNodePtr;
 
         // TODO: Gehören die hier rein?
-        std::unique_ptr<TypeTable> typeTable;
         std::unique_ptr<SymbolTable> symbolTable;
 
         std::vector<std::shared_ptr<FunctionDefinitionNode>> functionDefinitionNodes;
@@ -117,6 +116,8 @@ class FunctionDefinitionNode {
         std::optional<std::string> returnTypeName;
         std::vector<AST::MutNodePtr> methodBody;
         bool builtin = false;
+
+        std::shared_ptr<FunctionDeclaration> functionDeclaration; ///< Filled by NameAndTypeAnalysis
 };
 
 class FunctionCallNode : public ASTNode {
@@ -129,33 +130,36 @@ class FunctionCallNode : public ASTNode {
         ~FunctionCallNode() override = default;
 
         std::string name;
-        SymbolTable::ConstIterator methodDecl;
         std::vector<AST::MutNodePtr> argumentList;
-
         bool builtinMethod = true; // Use register calling convention from framework
+
+        std::shared_ptr<const FunctionDeclaration> functionDeclaration; ///< Filled by NameAndTypeAnalysis
 };
 
 class ReturnNode : public ASTNode {
     public:
         ReturnNode(const SourceLocation &loc, AST::OptMutNodePtr rhs);
 
+        ASTNodeType getType() const override;
+
     private:
         AST::OptMutNodePtr rhs;
 };
 
-class VariableDeclarationNode :
+class VariableInitializationNode :
         public ASTNode {
     public:
-        VariableDeclarationNode(const SourceLocation &loc, std::string type, std::string name, AST::MutNodePtr rhs);
+        VariableInitializationNode(const SourceLocation &loc, std::string type, std::string name, AST::MutNodePtr rhs);
 
         [[nodiscard]] ASTNodeType getType() const override;
 
-        ~VariableDeclarationNode() override = default;
+        ~VariableInitializationNode() override = default;
 
         std::string type;
         std::string name;
-        std::shared_ptr<VariableDeclaration> decl;
         AST::MutNodePtr rhs;
+
+        std::shared_ptr<VariableDeclaration> variableDeclaration; ///< Filled by NameAndTypeAnalysis
 };
 
 class VariableAssignmentNode : public ASTNode {
@@ -168,7 +172,7 @@ class VariableAssignmentNode : public ASTNode {
 
         std::string name;
         AST::MutNodePtr rhs;
-        std::shared_ptr<VariableDeclaration> decl;
+        std::shared_ptr<const VariableDeclaration> decl;
 };
 
 class IntegerConstantNode :
@@ -192,9 +196,8 @@ class VariableAccessNode :
 
         ~VariableAccessNode() override = default;
 
-        //SymbolTable::ConstIterator varDecl;
         std::string name;
-        std::shared_ptr<VariableDeclaration> decl;
+        std::shared_ptr<const VariableDeclaration> decl;
 };
 
 template<typename GenericVisitorLambda>
@@ -205,7 +208,7 @@ void ASTNode::visit(GenericVisitorLambda visitor) {
             visitor(*dynamic_cast<FunctionCallNode *>(this));
             break;
         case VariableDeclaration:
-            visitor(*dynamic_cast<VariableDeclarationNode *>(this));
+            visitor(*dynamic_cast<VariableInitializationNode *>(this));
             break;
         case VariableAssignment:
             visitor(*dynamic_cast<VariableAssignmentNode *>(this));
@@ -221,6 +224,9 @@ void ASTNode::visit(GenericVisitorLambda visitor) {
             break;
         case MethodDefinition:
             visitor(*dynamic_cast<FunctionDefinitionNode *>(this));
+            break;
+        case Return:
+            visitor(*dynamic_cast<ReturnNode *>(this));
             break;
     }
 }

@@ -30,12 +30,12 @@ FunctionCallNode::FunctionCallNode(const SourceLocation &loc, std::string name, 
         name(std::move(name)),
         argumentList(std::move(args)) {}
 
-ASTNodeType VariableDeclarationNode::getType() const {
+ASTNodeType VariableInitializationNode::getType() const {
     return ASTNodeType::VariableDeclaration;
 }
 
-VariableDeclarationNode::VariableDeclarationNode(const SourceLocation &loc, std::string type, std::string name,
-                                                 AST::MutNodePtr rhs) :
+VariableInitializationNode::VariableInitializationNode(const SourceLocation &loc, std::string type, std::string name,
+                                                       AST::MutNodePtr rhs) :
         ASTNode(loc),
         type(std::move(type)),
         name(std::move(name)),
@@ -76,3 +76,7 @@ FunctionDefinitionNode::FunctionDefinitionNode(SourceLocation loc, std::string n
         returnTypeName(std::move(returnTypeName)) {}
 
 ReturnNode::ReturnNode(const SourceLocation &loc, AST::OptMutNodePtr rhs) : ASTNode(loc), rhs(std::move(rhs)) {}
+
+ASTNodeType ReturnNode::getType() const {
+    return ASTNodeType::Return;
+}

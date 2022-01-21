@@ -29,14 +29,14 @@ set(SOURCES
         src/AST.cpp
         src/AssemblyOutput.cpp
         src/CodeGenerator.cpp
+        src/Declaration.cpp
         src/ASTGenerationVisitor.cpp
-        src/NameAnalysis.cpp
+        src/NameAndTypeAnalysis.cpp
         src/SourceLocation.cpp
         src/SymbolTable.cpp
         src/ScopeIndent.cpp
         src/CompilerError.cpp
-        src/TypeTable.cpp
-        src/TypeAnalysis.cpp src/Reg.cpp)
+        src/Reg.cpp)
 
 add_library(gbc ${SOURCES})
 target_link_libraries(gbc PRIVATE fmt::fmt PUBLIC antlr4_static)

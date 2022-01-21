@@ -13,12 +13,7 @@
 #include <fmt/format.h>
 #include <gbc/Reg.hpp>
 #include <variant>
-
-struct NumericAddress {
-    uint16_t a;
-};
-
-using Address = std::variant<NumericAddress, std::string>;
+#include <gbc/VarAccess.hpp>
 
 
 class AssemblyOutput {
@@ -50,9 +45,9 @@ class AssemblyOutput {
          */
         void saveSPtoFP();
 
-        void pop16ToMemory(Address a);
+        void pop16ToMemory(VarAccess::Location a);
 
-        void push16FromMemory(Address a);
+        void push16FromMemory(VarAccess::Location a);
 
         //void
 
@@ -82,6 +77,8 @@ class AssemblyOutput {
         void unindent();
 
         void ret();
+
+        void addSP(std::int16_t val);
 
         /**
          * Modifies HL!

@@ -24,13 +24,15 @@ class CodeGenerator {
         AssemblyOutput &out;
         const AST &ast;
 
+        //int fpOffsetLastVar = 0;
+
         // int ind = 0;
 
         void generateAssembly(const ArithmeticExpressionNode &node);
 
         void generateAssembly(const FunctionCallNode &node);
 
-        void generateAssembly(const VariableDeclarationNode &node);
+        void generateAssembly(const VariableInitializationNode &node);
 
         void generateAssembly(const VariableAssignmentNode &node);
 
@@ -39,6 +41,8 @@ class CodeGenerator {
         void generateAssembly(const VariableAccessNode &node);
 
         void generateAssembly(const FunctionDefinitionNode &node);
+
+        void generateAssembly(const ReturnNode &node);
 
         void assignGlobals();
 

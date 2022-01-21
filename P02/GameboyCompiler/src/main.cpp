@@ -1,10 +1,9 @@
 #include <antlr4-runtime.h>
 #include "GameboyLanguageLexer.h"
 #include "GameboyLanguageParser.h"
-#include "gbc/TypeAnalysis.hpp"
 #include <gbc/ASTGenerationVisitor.hpp>
 #include <gbc/CodeGenerator.hpp>
-#include <gbc/NameAnalysis.hpp>
+#include <gbc/NameAndTypeAnalysis.hpp>
 
 int main() {
     std::string filename = "tests/inputs/assignments.gb";
@@ -18,8 +17,7 @@ int main() {
     AST ast = visitor.generateAST(parser.program());
 
 
-    NameAnalysis::annotateAST(ast);
-    TypeAnalysis::analyzeTypes(ast);
+    NameAndTypeAnalysis(ast).annotateAST();
 
     AssemblyOutput output("out.asm");
     CodeGenerator(output, ast).generateAssembly();

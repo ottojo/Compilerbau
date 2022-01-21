@@ -6,7 +6,7 @@
 
 #include <gbc/SymbolTable.hpp>
 
-bool SymbolTable::enter(const std::string &id, const std::shared_ptr<Declaration> &decl) {
+bool SymbolTable::enterVariableDeclaration(const std::string &id, const std::shared_ptr<VariableDeclaration> &decl) {
     if (stacks[id].size() > currNl) {
         // Name already existent at current nesting level
         return false;
@@ -18,10 +18,9 @@ bool SymbolTable::enter(const std::string &id, const std::shared_ptr<Declaration
     if (verticalEntry != verticalConnections.end()) {
         nextStack = verticalEntry->second;
         assert(not nextStack->second.empty());
-        decl->FPoffset = nextStack->second.top().decl->FPoffset + nextStack->second.top().decl->size;
     }
 
-    decl->nestingLevel = currNl;
+
     DE de{.name=id, .decl=decl, .nextStackAtSameNL = nextStack};
     stacks[id].push(de);
     // Append this element to list of current NL
@@ -29,7 +28,7 @@ bool SymbolTable::enter(const std::string &id, const std::shared_ptr<Declaration
     return true;
 }
 
-std::shared_ptr<Declaration> SymbolTable::lookup(const std::string &id) const {
+std::shared_ptr<VariableDeclaration> SymbolTable::lookupVariable(const std::string &id) const {
     auto r = stacks.find(id);
     if (r == stacks.end()) {
         return nullptr;
@@ -69,19 +68,3 @@ std::vector<DE> SymbolTable::leaveScope() {
 std::size_t SymbolTable::currentNestingLevel() const {
     return currNl;
 }
-
-DeclType VariableDeclaration::getType() {
-    return DeclType::Variable;
-}
-
-VariableDeclaration::VariableDeclaration(const SourceLocation &loc) : Declaration(loc) {}
-
-DeclType FunctionDeclaration::getType() {
-    return DeclType::Function;
-}
-
-FunctionDeclaration::FunctionDeclaration(const SourceLocation &loc) : Declaration(loc) {}
-
-FunctionDeclaration::FunctionDeclaration() {}
-
-Declaration::Declaration(const SourceLocation &loc) : loc(loc) {}

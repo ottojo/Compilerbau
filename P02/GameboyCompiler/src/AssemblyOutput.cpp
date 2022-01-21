@@ -61,23 +61,29 @@ void AssemblyOutput::preamble() {
     print(".include \"../framework.asm\"\n");
 }
 
-void AssemblyOutput::pop16ToMemory(Address a) {
-    if (std::holds_alternative<NumericAddress>(a)) {
-        comment(fmt::format("*{:#x} <- stack", std::get<NumericAddress>(a).a));
-        pop16BitReg(Reg16::BC);
-        ldReg(Reg::A, Reg::B);
-        load16BitConst(Reg16::HL, std::get<NumericAddress>(a).a);
-    } else if (std::holds_alternative<std::string>(a)) {
-        comment(fmt::format("{} <- stack", std::get<std::string>(a)));
-        pop16BitReg(Reg16::BC);
-        ldReg(Reg::A, Reg::B);
-        loadAddressLabel(Reg16::HL, get<std::string>(a));
+void AssemblyOutput::pop16ToMemory(VarAccess::Location a) {
+    if (std::holds_alternative<VarAccess::FPRelative>(a)) {
+        auto offset = std::get<VarAccess::FPRelative>(a).offset;
+        comment(fmt::format("*(FP{:+}) <- stack", offset));
+        indent();
+        // Address to HL
+        load16BitConst(Reg16::HL, offset);
+        add16HL(Reg16::FP);
+    } else if (std::holds_alternative<VarAccess::ByGlobalName>(a)) {
+        comment(fmt::format("{} <- stack", std::get<VarAccess::ByGlobalName>(a).name));
+        indent();
+        // Address to HL
+        loadAddressLabel(Reg16::HL, get<VarAccess::ByGlobalName>(a).name);
     } else {
         throw std::runtime_error{"implement the new addressing format!!!"};
     }
-    print(fmt::format("LDI (HL), A\n"));
+    pop16BitReg(Reg16::BC);
+    comment("*HL <- BC");
+    ldReg(Reg::A, Reg::B);
+    print(fmt::format("LDI (HL), A; A = *HL; HL++\n"));
     ldReg(Reg::A, Reg::C);
-    print(fmt::format("LDI (HL), A\n"));
+    print(fmt::format("LDI (HL), A; A = *HL; HL++\n"));
+    unindent();
 }
 
 void AssemblyOutput::ldReg(Reg target, Reg src) {
@@ -92,13 +98,15 @@ void AssemblyOutput::ldReg16(Reg16 target, Reg16 src) {
     ldReg(highReg(target), highReg(src));
 }
 
-void AssemblyOutput::push16FromMemory(Address a) {
-    if (std::holds_alternative<NumericAddress>(a)) {
-        comment(fmt::format("stack <- *{:#x}", get<NumericAddress>(a).a));
-        load16BitConst(Reg16::HL, get<NumericAddress>(a).a);
-    } else if (std::holds_alternative<std::string>(a)) {
-        comment(fmt::format("stack <- {}", get<std::string>(a)));
-        loadAddressLabel(Reg16::HL, get<std::string>(a));
+void AssemblyOutput::push16FromMemory(VarAccess::Location a) {
+    if (std::holds_alternative<VarAccess::FPRelative>(a)) {
+        auto offset = std::get<VarAccess::FPRelative>(a).offset;
+        comment(fmt::format("stack <- *(FP{:+})", offset));
+        load16BitConst(Reg16::HL, offset);
+        add16HL(Reg16::FP);
+    } else if (std::holds_alternative<VarAccess::ByGlobalName>(a)) {
+        comment(fmt::format("stack <- {}", get<VarAccess::ByGlobalName>(a).name));
+        loadAddressLabel(Reg16::HL, get<VarAccess::ByGlobalName>(a).name);
     } else {
         assert(false);
     }
@@ -158,6 +166,10 @@ void AssemblyOutput::restoreSPfromFP() {
     ldReg16(Reg16::HL, Reg16::FP);
     print("LD SP, HL\n");
 
+}
+
+void AssemblyOutput::addSP(std::int16_t val) {
+    print(fmt::format("ADD SP, {:+}\n", val));
 }
 
 

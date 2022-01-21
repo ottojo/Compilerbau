@@ -45,6 +45,8 @@ class ASTGenerationVisitor : public gbparser::GameboyLanguageBaseVisitor {
 
         antlrcpp::Any visitFuncDeclaration(gbparser::GameboyLanguageParser::FuncDeclarationContext *ctx) override;
 
+        antlrcpp::Any visitReturnStatement(gbparser::GameboyLanguageParser::ReturnStatementContext *ctx) override;
+
     private:
         AST ast;
 };

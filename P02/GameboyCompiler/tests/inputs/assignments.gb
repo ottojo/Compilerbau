@@ -8,8 +8,8 @@ func add(int16 la, int16 lb) -> int16 {
 }
 
 func main() {
-   // int16 a = 1;
-   // int16 b = 2;
-   // int16 c = add(a, b);
-    printWord(g);
+    // int16 a = 1;
+    // int16 b = 2;
+    int16 c = add(1,2);
+    printWord(c);
 }

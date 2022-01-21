@@ -51,6 +51,13 @@ void CodeGenerator::generateAssembly(const ArithmeticExpressionNode &node) {
 void CodeGenerator::generateAssembly(const FunctionCallNode &node) {
     out.comment(fmt::format("Function call to {}", node.name));
     ScopeIndent i(out);
+
+    if (node.functionDeclaration->returnType != nullptr) {
+        auto returnType = node.functionDeclaration->returnType;
+        out.comment(fmt::format("Make space for return value of type {}, size {}", returnType->name, returnType->size));
+        ScopeIndent i2(out);
+        out.addSP(-1 * returnType->size);
+    }
     {
         out.comment("Evaluate arguments:");
         ScopeIndent i2(out);
@@ -58,44 +65,56 @@ void CodeGenerator::generateAssembly(const FunctionCallNode &node) {
             arg->visit([this](auto &node) { generateAssembly(node); });
         }
     }
+
+
     // Arguments are now on stack
     {
         out.comment("Call func:");
         ScopeIndent i2(out);
 
-        if (node.builtinMethod) {
+        if (node.functionDeclaration->builtin) {
             out.pop16BitReg(Reg16::HL);
             out.call(node.name);
         } else {
-
+            out.call(FUNC_PREFIX + node.name);
         }
+    }
+
+    {
+        // Remove arguments from stack
+        std::int16_t argumentsSize = 0;
+        for (const auto &arg: node.functionDeclaration->arguments) {
+            argumentsSize += arg->type->size;
+        }
+        out.comment(fmt::format("Removing arguments from stack (size {})", argumentsSize));
+        ScopeIndent i2(out);
+        out.addSP(argumentsSize);
     }
 }
 
-void CodeGenerator::generateAssembly(const VariableDeclarationNode &node) {
-    if (node.decl->nestingLevel == 0) {
+void CodeGenerator::generateAssembly(const VariableInitializationNode &node) {
+    if (node.variableDeclaration->global) {
         throw std::runtime_error{"wtf, a declaration for global " + node.name};
     }
-    // TODO (local variables): Arguments are offset negative from FP!
-    auto offsetFromFP = node.decl->FPoffset;
-    out.comment(fmt::format("Evaluate RHS for initialization of {} on stack (should be offset {} from FP)", node.name,
-                            offsetFromFP));
+    out.comment(fmt::format("Evaluate RHS for initialization of {} on stack", node.name));
     ScopeIndent i(out);
     node.rhs->visit([this](auto &node) { generateAssembly(node); });
+
 }
 
 void CodeGenerator::generateAssembly(const VariableAssignmentNode &node) {
     // TODO throw std::runtime_error{"Code generation for variable assignment not implemented"};
     out.comment(fmt::format("Assign {}", node.name));
     ScopeIndent i(out);
-    if (node.decl->nestingLevel == 0) {
+    if (node.decl->global) {
         {
             out.comment(fmt::format("Evaluate RHS for assignment of {}", node.name));
             ScopeIndent i2(out);
             node.rhs->visit([this](auto &node) { generateAssembly(node); });
         }
-        out.pop16ToMemory(GLOBAL_VAR_PREFIX + node.name);
+        out.pop16ToMemory(VarAccess::ByGlobalName{GLOBAL_VAR_PREFIX + node.name});
     } else {
+
         out.comment("Local variable assignment not implemented");
         fmt::print(stderr, "Local variable assignment not implemented\n");
     }
@@ -109,16 +128,17 @@ void CodeGenerator::generateAssembly(const IntegerConstantNode &node) {
 }
 
 void CodeGenerator::generateAssembly(const VariableAccessNode &node) {
-    if (node.decl->nestingLevel == 0) {
+    if (node.decl->global) {
         out.comment(fmt::format("Reading global {}", node.name));
         ScopeIndent i(out);
-        out.push16FromMemory(GLOBAL_VAR_PREFIX + node.name);
+        out.push16FromMemory(VarAccess::ByGlobalName{GLOBAL_VAR_PREFIX + node.name});
     } else {
-        // TODO: Local variables
-        auto offsetFromFP = node.decl->FPoffset;
-        out.comment(fmt::format("Reading local {} with offset {} from FP and size {}", node.name, offsetFromFP,
-                                node.decl->size));
-
+        auto varLoc = node.decl->location;
+        assert(varLoc.has_value());
+        auto offsetFP = get<VarAccess::FPRelative>(varLoc.value()).offset;
+        out.comment(fmt::format("Reading local {} with offset {} from FP and size {}", node.name, offsetFP,
+                                node.decl->type->size));
+        out.push16FromMemory(node.decl->location.value());
     }
 }
 
@@ -147,7 +167,6 @@ void CodeGenerator::generateAssembly(const FunctionDefinitionNode &node) {
     out.sectionWithLabel(FUNC_PREFIX + node.name);
     out.comment("Load frame pointer into register");
     out.saveSPtoFP();
-
     for (const auto &stmt: node.methodBody) {
         stmt->visit([this](auto &node) { generateAssembly(node); });
     }
@@ -178,7 +197,7 @@ void CodeGenerator::initializeGlobalVars() {
     // Only generate assignment of initial value
     for (const auto &v: ast.globalVariableDeclarationNodes) {
         VariableAssignmentNode init(v->loc, v->name, v->rhs);
-        init.decl = v->decl;
+        init.decl = v->variableDeclaration;
         generateAssembly(init);
     }
 }
@@ -189,5 +208,9 @@ void CodeGenerator::generateFuncs() {
     for (const auto &v: ast.functionDefinitionNodes) {
         generateAssembly(*v);
     }
+}
+
+void CodeGenerator::generateAssembly(const ReturnNode &/*node*/) {
+    out.comment("Return, not implemented");
 }
 
